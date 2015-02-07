@@ -1,0 +1,1 @@
+web: node nodeode_modules/http-server/bin/http-server

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "Solomon's key inspired puzzle game",
   "main": "node_modules/http-server/bin/httpserver",
+  "dependencies-note": "We only have dependencies and zero dev-dependencies as we are running client-side code and need these to setup the static http server setup and compilation to build our client-code to be server like a rocket",
   "dependencies": {
     "http-server": "~0.7.4",
     "phaser": "~2.2.2",
