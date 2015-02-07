@@ -1,5 +1,7 @@
 "use strict";
 
+var tileLoader = require("./loader/tiles");
+
 /** 
  * Phaser initialization script
  */
