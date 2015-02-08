@@ -6,7 +6,7 @@
   "dependencies-note": "We only have dependencies and zero dev-dependencies as we are running client-side code and need these to setup the static http server setup and compilation to build our client-code to be server like a rocket",
   "dependencies": {
     "http-server": "~0.7.4",
-    "phaser": "~2.2.2",
+    "phaser": "^2.2.2",
     "bower": "^1.3.12",
     "path": "^0.11.14",
     "event-stream": "^3.2.2",
