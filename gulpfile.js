@@ -55,7 +55,6 @@ gulp.task(taskTslintClient, function() {
 gulp.task(taskBrowserifyClient, function() {
     var bundler = browserify({
         entries: [ 
-            path.join(__dirname, "node_modules/phaser/typescript/phaser.d.ts"), 
             path.join(__dirname, "source/definitions/client.d.ts"), 
             path.join(__dirname, "source/index.ts") 
         ],
