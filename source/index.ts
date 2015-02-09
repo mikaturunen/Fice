@@ -41,6 +41,15 @@ var createFromType = (type: string, layer: string, tiledMapJson: any) => {
     return results;
 };
 
+var createSprite = (element: any, group: any) => {
+    var sprite = group.create(element.x, element.y, element.properties.sprite);
+    
+    //copy all properties to the sprite
+    Object.keys(element.properties).forEach((key: string) => {
+        sprite[key] = element.properties[key];
+    });
+};
+
 /** 
  * Phaser initialization script
  */
@@ -70,16 +79,23 @@ var init = () => {
             
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
             var start = createFromType("START", "entities", lvlJson);
-            console.log(start);
             var block = createFromType("BLOCK", "entities", lvlJson);
-            console.log(block);
             var target = createFromType("TARGET", "entities", lvlJson);
-            console.log(target);
             
             // Creates the layer from the collisions layer in the Tiled data
             layer = map.createLayer("collision");
             // Creating the background layer from the layer "background" in the Tiled data
             backgroundLayer = map.createLayer("background");
+            map.setCollisionBetween(1, 100000, true, "collision");
+        
+            var targets = game.add.group();
+            var blocks = game.add.group();
+            var player = game.add.group();
+            // TODO this is risky :3 I like to live dangerously. TODO  add guards :)
+            createSprite(start[0], player);
+            block.forEach((element: any) => { createSprite(element, blocks); });
+            target.forEach((element: any) => { createSprite(element, targets); });
+            
             // Makes sure the game world matches the layer dimensions
             layer.resizeWorld();
         }
