@@ -72,9 +72,13 @@ var getYFromWorldCoordinates = (y: number) => {
  */
 var init = () => {
     var map: Phaser.Tilemap; 
-    var collisionLayer: Phaser.TilemapLayer;
+    var collision: Phaser.TilemapLayer;
     var backgroundLayer: Phaser.TilemapLayer;
     var player: Phaser.Sprite;
+    
+    // TODO create groups from blocks and targets
+    var blockSprites: Phaser.Sprite[] = [];
+    var targetSprites: Phaser.Sprite[] = [];
     
     /** 
      * Start Phaser itself
@@ -107,19 +111,24 @@ var init = () => {
             var targets: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
             
             // Creates the layer from the collisions layer in the Tiled data
-            collisionLayer = map.createLayer("collision");
+            collision = map.createLayer("collision");
             // Creating the background layer from the layer "background" in the Tiled data
             backgroundLayer = map.createLayer("background");
+             // Makes sure the game world matches the layer dimensions
+            collision.resizeWorld();
+            backgroundLayer.resizeWorld();
+            
             map.setCollisionBetween(1, 2000, true, "collision");
-        
+            
             player = game.add.sprite(
                     getXFromWorldCoordinates(start[0].x), 
                     getYFromWorldCoordinates(start[0].y),
                     "player"
                 );
             player.frame = 5;
-            game.physics.arcade.enable(player, Phaser.Physics.ARCADE);
-            player.body.setSize(32, 32);
+            game.physics.enable(player, Phaser.Physics.ARCADE);
+            player.body.collideWorldBounds = true;
+            player.body.setSize(32,32); 
             
             // TODO store created sprites.. but for sake of quick prototyping this is just fine :)
             blocks.forEach(block => {
@@ -129,21 +138,24 @@ var init = () => {
                     "items"
                 );
                 spriteBlock.frame = 0;
-                console.log(spriteBlock);
+                game.physics.enable(spriteBlock, Phaser.Physics.ARCADE);
+                spriteBlock.body.setSize(32,32); 
+                blockSprites.push(spriteBlock);
             });
+            
             targets.forEach(target => {
                 var targetBlock: Phaser.Sprite = game.add.sprite(
                     getXFromWorldCoordinates(target.x),
                     getYFromWorldCoordinates(target.y),
                     "items"
                 );
+                game.physics.enable(targetBlock, Phaser.Physics.ARCADE);
+                targetBlock.body.setSize(32,32); 
                 targetBlock.frame = 3;
+                blockSprites.push(targetBlock);
             });
 
-            
-            // Makes sure the game world matches the layer dimensions
-            collisionLayer.resizeWorld();
-            backgroundLayer.resizeWorld();
+	        collision.debug = true;
         },
         
         update: () => {
@@ -153,16 +165,35 @@ var init = () => {
             //       we'll move the character between two positions based on time and allow movement only after
             //      the character has reached the next position (next tile), to mimic the original obviously :) 
             if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                player.x -= speed;
+                player.body.velocity.x -= speed;
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                player.x += speed;
-            } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-                player.y -= speed;
-            } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-                player.y += speed;
+                player.body.velocity.x += speed;
+            } else {
+                player.body.velocity.x = 0;
             }
             
-            game.physics.arcade.collide(player, collisionLayer, (a: any, b: any) => { console.log("COLLISION", a, b); });
+            var collisionHandler = (obj1: any, obj2: any) => {
+                game.stage.backgroundColor = '#992d2d';
+            };
+
+            game.physics.arcade.collide(player, collision, collisionHandler, null, this);
+            
+            blockSprites.forEach((sprite) => {
+                game.physics.arcade.collide(player, sprite, collisionHandler, null, this);
+            });
+            targetSprites.forEach((sprite) => {
+                game.physics.arcade.collide(player, sprite, collisionHandler, null, this);
+            });
+        },
+        
+        render: () => {
+            game.debug.body(player);
+            blockSprites.forEach((sprite) => {
+                game.debug.body(sprite);
+            });
+            targetSprites.forEach((sprite) => {
+                game.debug.body(sprite);
+            });
         }
     });
 };
