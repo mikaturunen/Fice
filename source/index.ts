@@ -3,6 +3,7 @@
 // Loading the map explicitly
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
 
+
 var image = (imageName: string) => {
     return "/assets/images/" + imageName;
 };
@@ -13,6 +14,9 @@ var level = (levelName: string) => {
 
 var lvlJson = require("../assets/levels/lvl.json");
 
+var tileWidth: number = 32;
+var tileHeight: number = 32;
+
 /** 
  * Creates a given type of Object from provided Type on Layer
  * @param {string} type - Type we are looking for
@@ -20,27 +24,26 @@ var lvlJson = require("../assets/levels/lvl.json");
  * @param {any} tiledMapJson - Actual JSON of the Tiled outpu
  */
 var createFromType = (type: string, layer: string, tiledMapJson: any) => {
-    var results = <any[]> [ ];
-    console.log(tiledMapJson, type, layer);
-    
+    var results = <TiledObject[]> [ ];
     tiledMapJson.layers.forEach((tmpLayer: any) => {
         if (tmpLayer.name === layer) {
             // correct layer found
             tmpLayer.objects.forEach((object: any) => {
                 if (object.type === type) {
                     results.push(object);
-                } else {
-                    console.log(object.type);
                 }
             });
-        } else {
-            console.log(layer);
         }
     });
 
     return results;
 };
 
+/** 
+ * Creates a Sprite object from the given element.
+ * @param {any} element - element 
+ * @param {any} group - Group to associate the newly created Sprite with
+ */ 
 var createSprite = (element: any, group: any) => {
     var sprite = group.create(element.x, element.y, element.properties.sprite);
     
@@ -49,6 +52,16 @@ var createSprite = (element: any, group: any) => {
         sprite[key] = element.properties[key];
     });
 };
+
+var getXFromWorldCoordinates = (x: number) => {
+    return Math.floor(x / tileWidth) * tileWidth;
+};
+
+var getYFromWorldCoordinates = (y: number) => {
+    console.log(y, Math.floor(y / tileHeight) * tileHeight);
+    return Math.floor(y / tileHeight) * tileHeight;
+};
+
 
 /** 
  * Phaser initialization script
@@ -61,13 +74,14 @@ var init = () => {
     /** 
      * Start Phaser itself
      */
-    var game = new Phaser.Game(16 * 32, 14 * 32, Phaser.AUTO, "FIce", { 
+    var game = new Phaser.Game(16 * tileWidth, 14 * tileHeight, Phaser.AUTO, "FIce", { 
         // Wacky resolution? Yes, I'm going currently for the remake of the original so..
         
         preload: () => {
             // Loading all the game related assets
             game.load.tilemap("level", level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
             game.load.image("tiles", image("tiles.png"));
+            game.load.spritesheet("player", image("player-sheet.png"), 32, 32);
         }, 
         
         create: () => {
@@ -78,9 +92,9 @@ var init = () => {
             map.addTilesetImage("tiles", "tiles");
             
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
-            var start = createFromType("START", "entities", lvlJson);
-            var block = createFromType("BLOCK", "entities", lvlJson);
-            var target = createFromType("TARGET", "entities", lvlJson);
+            var start: TiledObject[] = createFromType("START", "entities", lvlJson);
+            var block: TiledObject[] = createFromType("BLOCK", "entities", lvlJson);
+            var target: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
             
             // Creates the layer from the collisions layer in the Tiled data
             layer = map.createLayer("collision");
@@ -88,13 +102,13 @@ var init = () => {
             backgroundLayer = map.createLayer("background");
             map.setCollisionBetween(1, 100000, true, "collision");
         
-            var targets = game.add.group();
-            var blocks = game.add.group();
-            var player = game.add.group();
-            // TODO this is risky :3 I like to live dangerously. TODO  add guards :)
-            createSprite(start[0], player);
-            block.forEach((element: any) => { createSprite(element, blocks); });
-            target.forEach((element: any) => { createSprite(element, targets); });
+            var player: Phaser.Sprite = game.add.sprite(
+                    getXFromWorldCoordinates(start[0].x), 
+                    getYFromWorldCoordinates(start[0].y),
+                    "player"
+                );
+            player.frame = 5;
+            console.log(player);
             
             // Makes sure the game world matches the layer dimensions
             layer.resizeWorld();
