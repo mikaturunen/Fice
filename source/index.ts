@@ -114,6 +114,8 @@ var init = () => {
                     "player"
                 );
             player.frame = 5;
+            game.physics.arcade.enable(player);
+            player.body.setSize(32, 32);
             
             // TODO store created sprites.. but for sake of quick prototyping this is just fine :)
             blocks.forEach(block => {
@@ -137,10 +139,12 @@ var init = () => {
             
             // Makes sure the game world matches the layer dimensions
             layer.resizeWorld();
+            backgroundLayer.resizeWorld();
+            game.physics.startSystem(Phaser.Physics.ARCADE);
         },
         
         update: () => {
-            var speed: number = 0.5;
+            var speed: number = 2.5;
             
             // NOTE : once we get everything in place, we will not be doing .x += something but instead 
             //       we'll move the character between two positions based on time and allow movement only after
