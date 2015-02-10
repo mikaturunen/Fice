@@ -3,6 +3,7 @@
 // Loading the map explicitly
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
 
+// NOTE Please note that all code here is extremely experimental and on a level where I'm just seeing what Phaser can do :)
 
 var image = (imageName: string) => {
     return "/assets/images/" + imageName;
@@ -30,6 +31,9 @@ var createFromType = (type: string, layer: string, tiledMapJson: any) => {
             // correct layer found
             tmpLayer.objects.forEach((object: any) => {
                 if (object.type === type) {
+                    // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to 
+                    // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
+                    object.y -= tileHeight;
                     results.push(object);
                 }
             });
@@ -70,6 +74,7 @@ var init = () => {
     var map: Phaser.Tilemap; 
     var layer: Phaser.TilemapLayer;
     var backgroundLayer: Phaser.TilemapLayer;
+    var player: Phaser.Sprite;
     
     /** 
      * Start Phaser itself
@@ -102,7 +107,7 @@ var init = () => {
             backgroundLayer = map.createLayer("background");
             map.setCollisionBetween(1, 100000, true, "collision");
         
-            var player: Phaser.Sprite = game.add.sprite(
+            player = game.add.sprite(
                     getXFromWorldCoordinates(start[0].x), 
                     getYFromWorldCoordinates(start[0].y),
                     "player"
@@ -112,6 +117,24 @@ var init = () => {
             
             // Makes sure the game world matches the layer dimensions
             layer.resizeWorld();
+        },
+        
+        update: () => {
+            var speed: number = 0.5;
+            
+            if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                player.x -= speed;
+                console.log(player.x, player.y);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                player.x += speed;
+                console.log(player.x, player.y);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+                player.y -= speed;
+                console.log(player.x, player.y);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+                player.y += speed;
+                console.log(player.x, player.y);
+            }
         }
     });
 };
