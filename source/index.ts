@@ -72,7 +72,7 @@ var getYFromWorldCoordinates = (y: number) => {
  */
 var init = () => {
     var map: Phaser.Tilemap; 
-    var layer: Phaser.TilemapLayer;
+    var collisionLayer: Phaser.TilemapLayer;
     var backgroundLayer: Phaser.TilemapLayer;
     var player: Phaser.Sprite;
     
@@ -92,6 +92,10 @@ var init = () => {
         
         create: () => {
             game.stage.backgroundColor = "#787878";
+            //have the game centered horizontally
+            game.scale.pageAlignHorizontally = true;
+            game.scale.pageAlignVertically = true;
+            game.physics.startSystem(Phaser.Physics.ARCADE);
             
             // Creating the actual map from the tiled data
             map = game.add.tilemap("level");
@@ -103,10 +107,10 @@ var init = () => {
             var targets: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
             
             // Creates the layer from the collisions layer in the Tiled data
-            layer = map.createLayer("collision");
+            collisionLayer = map.createLayer("collision");
             // Creating the background layer from the layer "background" in the Tiled data
             backgroundLayer = map.createLayer("background");
-            map.setCollisionBetween(1, 100000, true, "collision");
+            map.setCollisionBetween(1, 2000, true, "collision");
         
             player = game.add.sprite(
                     getXFromWorldCoordinates(start[0].x), 
@@ -114,7 +118,7 @@ var init = () => {
                     "player"
                 );
             player.frame = 5;
-            game.physics.arcade.enable(player);
+            game.physics.arcade.enable(player, Phaser.Physics.ARCADE);
             player.body.setSize(32, 32);
             
             // TODO store created sprites.. but for sake of quick prototyping this is just fine :)
@@ -138,9 +142,8 @@ var init = () => {
 
             
             // Makes sure the game world matches the layer dimensions
-            layer.resizeWorld();
+            collisionLayer.resizeWorld();
             backgroundLayer.resizeWorld();
-            game.physics.startSystem(Phaser.Physics.ARCADE);
         },
         
         update: () => {
@@ -158,6 +161,8 @@ var init = () => {
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
                 player.y += speed;
             }
+            
+            game.physics.arcade.collide(player, collisionLayer, (a: any, b: any) => { console.log("COLLISION", a, b); });
         }
     });
 };
