@@ -87,6 +87,7 @@ var init = () => {
             game.load.tilemap("level", level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
             game.load.image("tiles", image("tiles.png"));
             game.load.spritesheet("player", image("player-sheet.png"), 32, 32);
+            game.load.spritesheet("items", image("items-sheet.png"), 32, 32);
         }, 
         
         create: () => {
@@ -98,8 +99,8 @@ var init = () => {
             
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
             var start: TiledObject[] = createFromType("START", "entities", lvlJson);
-            var block: TiledObject[] = createFromType("BLOCK", "entities", lvlJson);
-            var target: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
+            var blocks: TiledObject[] = createFromType("BLOCK", "entities", lvlJson);
+            var targets: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
             
             // Creates the layer from the collisions layer in the Tiled data
             layer = map.createLayer("collision");
@@ -113,7 +114,26 @@ var init = () => {
                     "player"
                 );
             player.frame = 5;
-            console.log(player);
+            
+            // TODO store created sprites.. but for sake of quick prototyping this is just fine :)
+            blocks.forEach(block => {
+                var spriteBlock: Phaser.Sprite = game.add.sprite(
+                    getXFromWorldCoordinates(block.x),
+                    getYFromWorldCoordinates(block.y),
+                    "items"
+                );
+                spriteBlock.frame = 0;
+                console.log(spriteBlock);
+            });
+            targets.forEach(target => {
+                var targetBlock: Phaser.Sprite = game.add.sprite(
+                    getXFromWorldCoordinates(target.x),
+                    getYFromWorldCoordinates(target.y),
+                    "items"
+                );
+                targetBlock.frame = 3;
+            });
+
             
             // Makes sure the game world matches the layer dimensions
             layer.resizeWorld();

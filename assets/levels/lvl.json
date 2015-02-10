@@ -24,7 +24,7 @@
         }, 
         {
          "draworder":"topdown",
-         "height":14,
+         "height":0,
          "name":"entities",
          "objects":[
                 {
@@ -104,8 +104,8 @@
                  "type":"BLOCK",
                  "visible":true,
                  "width":0,
-                 "x":160,
-                 "y":224
+                 "x":161.5,
+                 "y":226.5
                 }, 
                 {
                  "gid":41,
@@ -121,7 +121,7 @@
                  "visible":true,
                  "width":0,
                  "x":160,
-                 "y":254
+                 "y":291
                 }, 
                 {
                  "gid":41,
@@ -137,7 +137,7 @@
                  "visible":true,
                  "width":0,
                  "x":160,
-                 "y":286
+                 "y":258.5
                 }, 
                 {
                  "gid":41,
@@ -152,8 +152,8 @@
                  "type":"BLOCK",
                  "visible":true,
                  "width":0,
-                 "x":160,
-                 "y":318
+                 "x":162,
+                 "y":324
                 }, 
                 {
                  "gid":41,
@@ -168,8 +168,8 @@
                  "type":"BLOCK",
                  "visible":true,
                  "width":0,
-                 "x":257,
-                 "y":159
+                 "x":259,
+                 "y":163
                 }, 
                 {
                  "gid":55,
@@ -190,7 +190,7 @@
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
-         "width":16,
+         "width":0,
          "x":0,
          "y":0
         }],
