@@ -122,18 +122,17 @@ var init = () => {
         update: () => {
             var speed: number = 0.5;
             
+            // NOTE : once we get everything in place, we will not be doing .x += something but instead 
+            //       we'll move the character between two positions based on time and allow movement only after
+            //      the character has reached the next position (next tile), to mimic the original obviously :) 
             if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                 player.x -= speed;
-                console.log(player.x, player.y);
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
                 player.x += speed;
-                console.log(player.x, player.y);
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
                 player.y -= speed;
-                console.log(player.x, player.y);
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
                 player.y += speed;
-                console.log(player.x, player.y);
             }
         }
     });

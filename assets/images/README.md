@@ -3,5 +3,6 @@ The following images have been downloaded from http://opengameart.org/content/pl
 
 - items.png
 - tiles.png 
+- player-sheet.png
 
-
+I've worked with the originals quite bit. Mainly resizing and adding transparent background if they didn't have. Didn't care for macig pink this time :)
