@@ -101,9 +101,8 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
         sprite.body.setSize(32,32); 
         // Adding it into the blocks group
         spriteGroup.add(sprite);
-    });
-            
-}
+    });          
+};
 
 /** 
  * Phaser initialization script
@@ -136,6 +135,8 @@ var init = () => {
             map = game.add.tilemap("level");
             map.addTilesetImage("tiles", "tiles");
             
+            loadLayers(map);
+            
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
             // --> https://github.com/photonstorm/phaser/pull/1609 -- merged, waits release
             var start: TiledObject[] = createFromType("START", "entities", lvlJson);
@@ -153,8 +154,6 @@ var init = () => {
             fillSpriteGroup(blockGroup, "BLOCK", "entities", 0, game);
             targetGroup = game.add.group();
             fillSpriteGroup(blockGroup, "TARGET", "entities", 3, game);
-
-            loadLayers(map);
         },
         
         update: () => {
@@ -175,7 +174,7 @@ var init = () => {
                 game.stage.backgroundColor = '#992d2d';
             }; 
 
-            game.physics.arcade.collide(player, collision, collisionHandler, null, this);
+            game.physics.arcade.collide(player, layers["collision"], collisionHandler, null, this);
             game.physics.arcade.collide(player, targetGroup);
             game.physics.arcade.collide(player, blockGroup);
             game.physics.arcade.collide(targetGroup, blockGroup);
