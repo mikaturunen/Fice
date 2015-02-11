@@ -17,8 +17,20 @@ var level = (levelName: string) => {
 
 var lvlJson = require("../assets/levels/lvl.json");
 
-var tileWidth: number = 32;
-var tileHeight: number = 32;
+interface Position2D {
+    x: number;
+    y: number;
+}
+interface TileSize {
+    width: number;
+    heigth: number;
+}
+
+
+var tileSizes: TileSize = {
+    width: 32,
+    heigth: 32
+};
 
 /** 
  * Creates a given type of Object from provided Type on Layer
@@ -35,7 +47,7 @@ var createFromType = (type: string, layer: string, tiledMapJson: any) => {
                 if (object.type === type) {
                     // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to 
                     // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
-                    object.y -= tileHeight;
+                    object.y -= tileSizes.heigth;
                     results.push(object);
                 }
             });
@@ -59,13 +71,18 @@ var createSprite = (element: any, group: any) => {
     });
 };
 
-var getXFromWorldCoordinates = (x: number) => {
-    return Math.floor(x / tileWidth) * tileWidth;
+var getTileCoordinateFromWorldCoordinates = (position: Position2D, sizes: TileSize): Position2D => {
+    return {
+        x: Math.floor(position.x / sizes.width),
+        y: Math.floor(position.y / sizes.heigth)
+    };
 };
 
-var getYFromWorldCoordinates = (y: number) => {
-    console.log(y, Math.floor(y / tileHeight) * tileHeight);
-    return Math.floor(y / tileHeight) * tileHeight;
+var getFlooredWorldCoordinateFromWorldCoordinates = (position: Position2D, sizes: TileSize): Position2D => {
+    return {
+        x: Math.floor(position.x / sizes.width) * sizes.width,
+        y: Math.floor(position.y / sizes.heigth) * sizes.heigth
+    };
 };
 
 // TODO relocate these beasts into a proper location
@@ -73,6 +90,7 @@ var layers: { [ layerName: string ]: Phaser.TilemapLayer; } = { };
 var blockGroup: Phaser.Group;
 var targetGroup: Phaser.Group;
 var player: Phaser.Sprite;
+var playerTween: any;
  
 var loadLayers = (map: any) => {
     [
@@ -89,11 +107,8 @@ var loadLayers = (map: any) => {
 
 var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any) => {
     createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
-        var sprite: Phaser.Sprite = game.add.sprite(
-            getXFromWorldCoordinates(obj.x),
-            getYFromWorldCoordinates(obj.y),
-            "items"
-        );
+        var position = getFlooredWorldCoordinateFromWorldCoordinates({ x: obj.x, y: obj.y }, tileSizes);
+        var sprite: Phaser.Sprite = game.add.sprite(position.x, position.y, "items");
         // Enabling physics for the body
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
         // Setting frame and body size for the physics
@@ -110,10 +125,13 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
 var init = () => {
     var map: Phaser.Tilemap; 
 
+    var moveStartTimer = 0;
+    var lastUpdateLoopTotalTimer = 0;
+
     /** 
      * Start Phaser itself
      */
-    var game = new Phaser.Game(16 * tileWidth, 14 * tileHeight, Phaser.AUTO, "FIce", { 
+    var game = new Phaser.Game(16 * tileSizes.width, 14 * tileSizes.heigth, Phaser.AUTO, "FIce", { 
         // Wacky resolution? Yes, I'm going currently for the remake of the original so..
         
         preload: () => {
@@ -136,15 +154,12 @@ var init = () => {
             map.addTilesetImage("tiles", "tiles");
             
             loadLayers(map);
-            
+
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
             // --> https://github.com/photonstorm/phaser/pull/1609 -- merged, waits release
             var start: TiledObject[] = createFromType("START", "entities", lvlJson);
-            player = game.add.sprite(
-                    getXFromWorldCoordinates(start[0].x), 
-                    getYFromWorldCoordinates(start[0].y),
-                    "player"
-                );
+            var position = getFlooredWorldCoordinateFromWorldCoordinates({ x: start[0].x, y: start[0].y }, tileSizes);
+            player = game.add.sprite(position.x, position.y, "player");
             player.frame = 5;
             game.physics.enable(player, Phaser.Physics.ARCADE);
             player.body.collideWorldBounds = true;
@@ -155,20 +170,44 @@ var init = () => {
             targetGroup = game.add.group();
             fillSpriteGroup(blockGroup, "TARGET", "entities", 3, game);
         },
-        
+
         update: () => {
             var speed: number = 40.5;
-            
-            // NOTE : once we get everything in place, we will not be doing .x += something but instead 
-            //       we'll move the character between two positions based on time and allow movement only after
-            //      the character has reached the next position (next tile), to mimic the original obviously :) 
-            if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                player.body.velocity.x = -speed;
-            } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                player.body.velocity.x = speed;
+            var totalMovementTimeToNextTile: number = 500;
+
+            if (playerTween && playerTween.isRunning) {
+
             } else {
                 player.body.velocity.x = 0;
-            }
+                //  32 = 32 pixels per 'totalMovementTimeToNextTile' seconds = 
+                //      the speed the sprite will move at, regardless of the distance it has to travel
+                var duration: number = 0;
+                var newPosition: Position2D;
+
+                if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                    newPosition = getFlooredWorldCoordinateFromWorldCoordinates({ 
+                            x: player.body.x - 32, 
+                            y: player.body.y 
+                        }, tileSizes);
+                    duration = 
+                        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / 32) * totalMovementTimeToNextTile;
+                    playerTween = 
+                        game.add.tween(player).to(newPosition, duration, Phaser.Easing.Linear.None, true); 
+                    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
+                    playerTween.start();
+                } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                    newPosition = getFlooredWorldCoordinateFromWorldCoordinates({ 
+                            x: player.body.x + 32, 
+                            y: player.body.y 
+                        }, tileSizes);
+                    duration = 
+                        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / 32) * totalMovementTimeToNextTile;
+                    playerTween = 
+                        game.add.tween(player).to(newPosition, duration, Phaser.Easing.Linear.None, true);   
+                    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
+                    playerTween.start();
+                }
+            }     
             
             var collisionHandler = (obj1: any, obj2: any) => {
                 game.stage.backgroundColor = '#992d2d';
