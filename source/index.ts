@@ -119,6 +119,28 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
     });          
 };
 
+var createTweenForPlayer = (velocity: number, game: any) => {
+    // 'totalMovementTimeToNextTile' seconds to travel 'tileSizes.width' 
+    var totalMovementTimeToNextTile: number = 500;
+    var newPosition: Position2D = getFlooredWorldCoordinateFromWorldCoordinates(
+        { 
+            x: player.body.x + velocity, 
+            y: player.body.y 
+        }, 
+        tileSizes);
+
+    var duration: number = 
+        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / tileSizes.width) * 
+        totalMovementTimeToNextTile;
+
+    var tween = game.add.tween(player).to(newPosition, duration, Phaser.Easing.Linear.None, true); 
+    tween.start();
+
+    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
+
+    return tween;
+};
+
 /** 
  * Phaser initialization script
  */
@@ -172,40 +194,15 @@ var init = () => {
         },
 
         update: () => {
-            var speed: number = 40.5;
-            var totalMovementTimeToNextTile: number = 500;
-
             if (playerTween && playerTween.isRunning) {
 
             } else {
                 player.body.velocity.x = 0;
-                //  32 = 32 pixels per 'totalMovementTimeToNextTile' seconds = 
-                //      the speed the sprite will move at, regardless of the distance it has to travel
-                var duration: number = 0;
-                var newPosition: Position2D;
 
                 if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                    newPosition = getFlooredWorldCoordinateFromWorldCoordinates({ 
-                            x: player.body.x - 32, 
-                            y: player.body.y 
-                        }, tileSizes);
-                    duration = 
-                        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / 32) * totalMovementTimeToNextTile;
-                    playerTween = 
-                        game.add.tween(player).to(newPosition, duration, Phaser.Easing.Linear.None, true); 
-                    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
-                    playerTween.start();
+                    playerTween = createTweenForPlayer(-tileSizes.width, game);
                 } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                    newPosition = getFlooredWorldCoordinateFromWorldCoordinates({ 
-                            x: player.body.x + 32, 
-                            y: player.body.y 
-                        }, tileSizes);
-                    duration = 
-                        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / 32) * totalMovementTimeToNextTile;
-                    playerTween = 
-                        game.add.tween(player).to(newPosition, duration, Phaser.Easing.Linear.None, true);   
-                    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
-                    playerTween.start();
+                    playerTween = createTweenForPlayer(tileSizes.width, game);
                 }
             }     
             
@@ -216,6 +213,7 @@ var init = () => {
             game.physics.arcade.collide(player, layers["collision"], collisionHandler, null, this);
             game.physics.arcade.collide(player, targetGroup);
             game.physics.arcade.collide(player, blockGroup);
+            game.physics.arcade.collide(playerTween, blockGroup);
             game.physics.arcade.collide(targetGroup, blockGroup);
         },
         
