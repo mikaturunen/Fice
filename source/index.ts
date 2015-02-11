@@ -1,5 +1,7 @@
 "use strict";
 
+var _ = require("lodash");
+
 // Loading the map explicitly
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
 
@@ -66,20 +68,49 @@ var getYFromWorldCoordinates = (y: number) => {
     return Math.floor(y / tileHeight) * tileHeight;
 };
 
+// TODO relocate these beasts into a proper location
+var layers: { [ layerName: string ]: Phaser.TilemapLayer; } = { };
+var blockGroup: Phaser.Group;
+var targetGroup: Phaser.Group;
+var player: Phaser.Sprite;
+ 
+var loadLayers = (map: any) => {
+    [
+        "collision",
+        "background"
+    ]
+    .forEach((layer: string) => {
+        layers[layer] = map.createLayer(layer);
+        layers[layer].resizeWorld();
+    });
+    
+    map.setCollisionBetween(1, 2000, true, "collision");
+};
+
+var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any) => {
+    createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
+        var sprite: Phaser.Sprite = game.add.sprite(
+            getXFromWorldCoordinates(obj.x),
+            getYFromWorldCoordinates(obj.y),
+            "items"
+        );
+        // Enabling physics for the body
+        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+        // Setting frame and body size for the physics
+        sprite.frame = frame;
+        sprite.body.setSize(32,32); 
+        // Adding it into the blocks group
+        spriteGroup.add(sprite);
+    });
+            
+}
 
 /** 
  * Phaser initialization script
  */
 var init = () => {
     var map: Phaser.Tilemap; 
-    var collision: Phaser.TilemapLayer;
-    var backgroundLayer: Phaser.TilemapLayer;
-    var player: Phaser.Sprite;
-    
-    // TODO create groups from blocks and targets
-    var blockSprites: Phaser.Sprite[] = [];
-    var targetSprites: Phaser.Sprite[] = [];
-    
+
     /** 
      * Start Phaser itself
      */
@@ -106,20 +137,8 @@ var init = () => {
             map.addTilesetImage("tiles", "tiles");
             
             // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
+            // --> https://github.com/photonstorm/phaser/pull/1609 -- merged, waits release
             var start: TiledObject[] = createFromType("START", "entities", lvlJson);
-            var blocks: TiledObject[] = createFromType("BLOCK", "entities", lvlJson);
-            var targets: TiledObject[] = createFromType("TARGET", "entities", lvlJson);
-            
-            // Creates the layer from the collisions layer in the Tiled data
-            collision = map.createLayer("collision");
-            // Creating the background layer from the layer "background" in the Tiled data
-            backgroundLayer = map.createLayer("background");
-             // Makes sure the game world matches the layer dimensions
-            collision.resizeWorld();
-            backgroundLayer.resizeWorld();
-            
-            map.setCollisionBetween(1, 2000, true, "collision");
-            
             player = game.add.sprite(
                     getXFromWorldCoordinates(start[0].x), 
                     getYFromWorldCoordinates(start[0].y),
@@ -130,70 +149,39 @@ var init = () => {
             player.body.collideWorldBounds = true;
             player.body.setSize(32,32); 
             
-            // TODO store created sprites.. but for sake of quick prototyping this is just fine :)
-            blocks.forEach(block => {
-                var spriteBlock: Phaser.Sprite = game.add.sprite(
-                    getXFromWorldCoordinates(block.x),
-                    getYFromWorldCoordinates(block.y),
-                    "items"
-                );
-                spriteBlock.frame = 0;
-                game.physics.enable(spriteBlock, Phaser.Physics.ARCADE);
-                spriteBlock.body.setSize(32,32); 
-                blockSprites.push(spriteBlock);
-            });
-            
-            targets.forEach(target => {
-                var targetBlock: Phaser.Sprite = game.add.sprite(
-                    getXFromWorldCoordinates(target.x),
-                    getYFromWorldCoordinates(target.y),
-                    "items"
-                );
-                game.physics.enable(targetBlock, Phaser.Physics.ARCADE);
-                targetBlock.body.setSize(32,32); 
-                targetBlock.frame = 3;
-                blockSprites.push(targetBlock);
-            });
+            blockGroup = game.add.group();
+            fillSpriteGroup(blockGroup, "BLOCK", "entities", 0, game);
+            targetGroup = game.add.group();
+            fillSpriteGroup(blockGroup, "TARGET", "entities", 3, game);
 
-	        collision.debug = true;
+            loadLayers(map);
         },
         
         update: () => {
-            var speed: number = 2.5;
+            var speed: number = 40.5;
             
             // NOTE : once we get everything in place, we will not be doing .x += something but instead 
             //       we'll move the character between two positions based on time and allow movement only after
             //      the character has reached the next position (next tile), to mimic the original obviously :) 
             if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                player.body.velocity.x -= speed;
+                player.body.velocity.x = -speed;
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                player.body.velocity.x += speed;
+                player.body.velocity.x = speed;
             } else {
                 player.body.velocity.x = 0;
             }
             
             var collisionHandler = (obj1: any, obj2: any) => {
                 game.stage.backgroundColor = '#992d2d';
-            };
+            }; 
 
             game.physics.arcade.collide(player, collision, collisionHandler, null, this);
-            
-            blockSprites.forEach((sprite) => {
-                game.physics.arcade.collide(player, sprite, collisionHandler, null, this);
-            });
-            targetSprites.forEach((sprite) => {
-                game.physics.arcade.collide(player, sprite, collisionHandler, null, this);
-            });
+            game.physics.arcade.collide(player, targetGroup);
+            game.physics.arcade.collide(player, blockGroup);
+            game.physics.arcade.collide(targetGroup, blockGroup);
         },
         
         render: () => {
-            game.debug.body(player);
-            blockSprites.forEach((sprite) => {
-                game.debug.body(sprite);
-            });
-            targetSprites.forEach((sprite) => {
-                game.debug.body(sprite);
-            });
         }
     });
 };
