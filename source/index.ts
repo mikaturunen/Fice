@@ -126,8 +126,6 @@ var createTweenForPlayer = (velocity: number, nextPosition: Phaser.Point, game: 
         totalMovementTimeToNextTile;
 
     var tween = game.add.tween(player.body.velocity).to({ x: velocity }, duration, Phaser.Easing.Linear.None, true);
-    tween.start();
-
     console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
 
     return tween;
@@ -198,26 +196,28 @@ var init = () => {
                     console.log("player, next", player.body.x, player.body.y, nextPosition.x, nextPosition.y);
 
                     // attempting to tell the player that you've reached your destination, HALT!
-                    player.body.x = nextPosition.x;
-                    player.body.y = nextPosition.y;
-                    player.body.velocity.x = player.body.velocity.y = 0;
+                   // player.body.x = nextPosition.x;
+                   // player.body.y = nextPosition.y;
+                   // player.body.velocity.x = player.body.velocity.y = 0;
                 }
             } else {
-                if (playerTween.isRunning === false) {
-                    // attempting to tell the player that you've reached your destination, HALT!
-                    player.body.x = nextPosition.x;
-                    player.body.y = nextPosition.y;
-                    player.body.velocity.x = player.body.velocity.y = 0;
-                }
-
-                console.log("playerTween", playerTween !== undefined, ", running:", playerTween ? playerTween.isRunning : "");
                 // Stopped, ready for new movement action
                 if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                     moveStartTimer = game.time.totalElapsedSeconds();
                     playerTween = createTweenForPlayer(-tileSizes.width, nextPosition, game);
+                    playerTween.onComplete.add(() => {
+                        console.log("complete");
+                        player.body.velocity.x = 0;
+                    }, this);
+                    playerTween.start();
                 } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
                     moveStartTimer = game.time.totalElapsedSeconds();
                     playerTween = createTweenForPlayer(tileSizes.width, nextPosition, game);
+                    playerTween.onComplete.add(() => {
+                        console.log("complete");
+                        player.body.velocity.x = 0;
+                    }, this);
+                    playerTween.start();
                 }
             }
 
