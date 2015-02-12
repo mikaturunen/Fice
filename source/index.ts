@@ -110,25 +110,8 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
     });
 };
 
-var createTweenForPlayer = (velocity: number, nextPosition: Phaser.Point, game: any) => {
-    // 'totalMovementTimeToNextTile' seconds to travel 'tileSizes.width'
-    var totalMovementTimeToNextTile: number = speedInMilliseconds;
-    var newPosition: Phaser.Point = getFlooredWorldCoordinateFromWorldCoordinates(
-        player.body.x + velocity,
-        player.body.y,
-        tileSizes);
-
-    nextPosition.x = newPosition.x;
-    nextPosition.y = newPosition.y;
-
-    var duration: number =
-        (game.physics.arcade.distanceToXY(player, newPosition.x, newPosition.y) / velocity) *
-        totalMovementTimeToNextTile;
-
-    var tween = game.add.tween(player.body.velocity).to({ x: velocity }, duration, Phaser.Easing.Linear.None, true);
-    console.log("UPDATE", duration, playerTween, player.body.x, player.body.y, newPosition);
-
-    return tween;
+var getTileFlooredXWorldCoordinate = (x: number) => {
+    return Math.floor(x / tileSizes.width) * tileSizes.width;
 };
 
 /**
@@ -137,9 +120,13 @@ var createTweenForPlayer = (velocity: number, nextPosition: Phaser.Point, game: 
 var init = () => {
     var map: Phaser.Tilemap;
 
+    var canMove: boolean = true;
     var moveStartTimer = 0;
     var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
     var lastUpdateLoopTotalTimer = 0;
+    var movingLeft: boolean = true;
+    var movingRight: boolean = !movingLeft;
+    var direction: boolean = false;
 
     /**
      * Start Phaser itself
@@ -185,39 +172,51 @@ var init = () => {
         },
 
         update: () => {
-            var currentMovementTimeDelta: number = (game.time.totalElapsedSeconds() - moveStartTimer) * 1000;
-            if (playerTween.isRunning === true) {
-                // Actively moving
-                if (currentMovementTimeDelta < speedInMilliseconds) {
-                    console.log("Tween running...", currentMovementTimeDelta, speedInMilliseconds);
-                } else {
-                    console.log("STOPPED...");
-                    playerTween.stop();
-                    console.log("player, next", player.body.x, player.body.y, nextPosition.x, nextPosition.y);
+            var checkMovement = () => {
+                var startedMoving: boolean = false;
 
-                    // attempting to tell the player that you've reached your destination, HALT!
-                   // player.body.x = nextPosition.x;
-                   // player.body.y = nextPosition.y;
-                   // player.body.velocity.x = player.body.velocity.y = 0;
-                }
-            } else {
-                // Stopped, ready for new movement action
+                var getNextTileWorldCoordinates = (velocityDirectionMultiplier: number) => {
+                    var velocity = 55 * velocityDirectionMultiplier;
+                    nextPosition.x = getTileFlooredXWorldCoordinate(player.body.x + (tileSizes.width * velocityDirectionMultiplier))
+                    player.body.velocity.x = velocity;
+                    canMove = false;
+                    console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
+                };
+
                 if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                    moveStartTimer = game.time.totalElapsedSeconds();
-                    playerTween = createTweenForPlayer(-tileSizes.width, nextPosition, game);
-                    playerTween.onComplete.add(() => {
-                        console.log("complete");
-                        player.body.velocity.x = 0;
-                    }, this);
-                    playerTween.start();
+                    console.log("Moving left");
+                    getNextTileWorldCoordinates(-1);
+                    direction = movingLeft;
+                    startedMoving = true;
                 } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                    moveStartTimer = game.time.totalElapsedSeconds();
-                    playerTween = createTweenForPlayer(tileSizes.width, nextPosition, game);
-                    playerTween.onComplete.add(() => {
-                        console.log("complete");
-                        player.body.velocity.x = 0;
-                    }, this);
-                    playerTween.start();
+                    console.log("Moving right");
+                    getNextTileWorldCoordinates(+1);
+                    direction = movingRight;
+                    startedMoving = true;
+                }
+
+                return startedMoving;
+            };
+
+            if (canMove) {
+                checkMovement();
+            } else {
+                var setPlayerToPosition: boolean = false;
+
+                if (direction === movingLeft && player.body.x <= nextPosition.x) {
+                    setPlayerToPosition = true;
+                    console.log("To position:", direction, player.body.x, nextPosition.x);
+                }
+
+                if (direction === movingRight && player.body.x >= nextPosition.x) {
+                    setPlayerToPosition = true;
+                    console.log("To position:", direction, player.body.x, nextPosition.x);
+                }
+
+                if (setPlayerToPosition && !checkMovement()) {
+                    player.body.x = nextPosition.x;
+                    player.body.velocity.x = 0;
+                    canMove = true;
                 }
             }
 
