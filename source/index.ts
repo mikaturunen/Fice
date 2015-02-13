@@ -137,9 +137,6 @@ var init = () => {
     var moveStartTimer = 0;
     var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
     var lastUpdateLoopTotalTimer = 0;
-    var movingLeft: boolean = true;
-    var movingRight: boolean = !movingLeft;
-    var direction: boolean = false;
 
     /**
      * Start Phaser itself
@@ -186,8 +183,6 @@ var init = () => {
 
         update: () => {
             var checkMovement = () => {
-                var startedMoving: boolean = false;
-
                 var getNextTileWorldCoordinates = (velocityDirectionMultiplier: number) => {
                     var velocity = 55 * velocityDirectionMultiplier;
                     nextPosition.x = getTileFlooredXWorldCoordinate(player.body.x + (tileSizes.width * velocityDirectionMultiplier))
@@ -195,9 +190,7 @@ var init = () => {
                     canMove = false;
                     console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
                 };
-
-                    var tileLeft = map.getTileWorldXY(player.body.x - 32, player.body.y, tileSizes.width, tileSizes.heigth, "collision");
-                var tileRight = map.getTileWorldXY(player.body.x + 32, player.body.y, tileSizes.width, tileSizes.heigth, "collision");
+                var startedMoving: boolean = false;
 
                 if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                     // TODO refactor the content of these if-staments into one modular function...
@@ -209,7 +202,6 @@ var init = () => {
                     if (!tilePresent) {
                         console.log("Moving left");
                         getNextTileWorldCoordinates(-1);
-                        direction = movingLeft;
                         startedMoving = true;
                     } else {
                         console.log("Tile on the LEFT - not moving");
@@ -222,9 +214,8 @@ var init = () => {
 
                     if (!tilePresent) {
                         console.log("Moving right");
-                        getNextTileWorldCoordinates(+1);
-                        direction = movingRight;
                         startedMoving = true;
+                        getNextTileWorldCoordinates(+1);
                     } else {
                         console.log("Tile on the RIGHT - not moving");
                     }
@@ -233,25 +224,47 @@ var init = () => {
                 return startedMoving;
             };
 
-            if (canMove) {
+            var checkFalling = () => {
+                var tilePresentBelow: boolean = map.hasTile(
+                    getTileXFromWorldCoordinate(player.body.x), 
+                    getTileYFromWorldCoordinate(player.body.y + 32), 
+                    layers["collision"]);
+
+                if (!tilePresentBelow) {
+                    player.body.velocity.x = 0;
+                    player.body.velocity.y = 55;
+                }
+
+                return tilePresentBelow;
+            };
+
+            var treshold = 0.01;
+            if ( (player.body.velocity.x >= -treshold && player.body.velocity.x <= treshold) || 
+                 (player.body.velocity.y >= -treshold && player.body.velocity.y <= treshold) ) {
                 checkMovement();
             } else {
+                console.log("moving");
                 var setPlayerToPosition: boolean = false;
 
-                if (direction === movingLeft && player.body.x <= nextPosition.x) {
+                // MOVING LEFT
+                if (player.body.velocity.x < -treshold && player.body.x <= nextPosition.x) {
                     setPlayerToPosition = true;
-                    console.log("To position:", direction, player.body.x, nextPosition.x);
+                    console.log("(L) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
                 }
 
-                if (direction === movingRight && player.body.x >= nextPosition.x) {
+                // MOVING RIGHT
+                if (player.body.velocity.x > treshold && player.body.x >= nextPosition.x) {
                     setPlayerToPosition = true;
-                    console.log("To position:", direction, player.body.x, nextPosition.x);
+                    console.log("(R) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
                 }
 
-                if (setPlayerToPosition && !checkMovement()) {
+                if (setPlayerToPosition) {
                     player.body.x = nextPosition.x;
-                    player.body.velocity.x = 0;
-                    canMove = true;
+                    
+                    if (checkFalling() && !checkMovement()) {
+                        canMove = true;
+                        player.body.velocity.x = 0;
+                    }
                 }
             }
 
