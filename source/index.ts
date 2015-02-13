@@ -2,6 +2,7 @@
 
 var _ = require("lodash");
 
+
 // Loading the map explicitly
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
 
@@ -67,6 +68,22 @@ var createSprite = (element: any, group: any) => {
     });
 };
 
+var getTileFlooredXWorldCoordinate = (x: number) => {
+    return Math.floor(x / tileSizes.width) * tileSizes.width;
+};
+
+var getTileFlooredYWorldCoordinate = (y: number) => {
+    return Math.floor(y / tileSizes.heigth) * tileSizes.heigth;
+};
+
+var getTileXFromWorldCoordinate = (x: number) => {
+    return Math.floor(x / tileSizes.width);
+};
+
+var getTileYFromWorldCoordinate = (y: number) => {
+    return Math.floor(y / tileSizes.heigth);
+};
+
 var getTileCoordinateFromWorldCoordinates = (x: number, y: number, sizes: TileSize): Phaser.Point => {
     return new Phaser.Point(Math.floor(x / sizes.width), Math.floor(y / sizes.heigth));
 };
@@ -108,10 +125,6 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
         // Adding it into the blocks group
         spriteGroup.add(sprite);
     });
-};
-
-var getTileFlooredXWorldCoordinate = (x: number) => {
-    return Math.floor(x / tileSizes.width) * tileSizes.width;
 };
 
 /**
@@ -183,16 +196,38 @@ var init = () => {
                     console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
                 };
 
+                    var tileLeft = map.getTileWorldXY(player.body.x - 32, player.body.y, tileSizes.width, tileSizes.heigth, "collision");
+                var tileRight = map.getTileWorldXY(player.body.x + 32, player.body.y, tileSizes.width, tileSizes.heigth, "collision");
+
                 if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                    console.log("Moving left");
-                    getNextTileWorldCoordinates(-1);
-                    direction = movingLeft;
-                    startedMoving = true;
+                    // TODO refactor the content of these if-staments into one modular function...
+                    var tilePresent: boolean = map.hasTile(
+                        getTileXFromWorldCoordinate(player.body.x - 32), 
+                        getTileYFromWorldCoordinate(player.body.y), 
+                        layers["collision"]);
+
+                    if (!tilePresent) {
+                        console.log("Moving left");
+                        getNextTileWorldCoordinates(-1);
+                        direction = movingLeft;
+                        startedMoving = true;
+                    } else {
+                        console.log("Tile on the LEFT - not moving");
+                    }
                 } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                    console.log("Moving right");
-                    getNextTileWorldCoordinates(+1);
-                    direction = movingRight;
-                    startedMoving = true;
+                    var tilePresent: boolean = map.hasTile(
+                        getTileXFromWorldCoordinate(player.body.x + 32), 
+                        getTileYFromWorldCoordinate(player.body.y), 
+                        layers["collision"]);
+
+                    if (!tilePresent) {
+                        console.log("Moving right");
+                        getNextTileWorldCoordinates(+1);
+                        direction = movingRight;
+                        startedMoving = true;
+                    } else {
+                        console.log("Tile on the RIGHT - not moving");
+                    }
                 }
 
                 return startedMoving;
