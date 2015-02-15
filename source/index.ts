@@ -131,12 +131,13 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
  * Phaser initialization script
  */
 var init = () => {
-    var map: Phaser.Tilemap;
 
+    var map: Phaser.Tilemap;
     var canMove: boolean = true;
     var moveStartTimer = 0;
-    var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
     var lastUpdateLoopTotalTimer = 0;
+    var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
+    var treshold: number = 0.1;
 
     /**
      * Start Phaser itself
@@ -182,91 +183,79 @@ var init = () => {
         },
 
         update: () => {
-            var checkMovement = () => {
-                var getNextTileWorldCoordinates = (velocityDirectionMultiplier: number) => {
-                    var velocity = 55 * velocityDirectionMultiplier;
-                    nextPosition.x = getTileFlooredXWorldCoordinate(player.body.x + (tileSizes.width * velocityDirectionMultiplier))
-                    player.body.velocity.x = velocity;
-                    canMove = false;
-                    console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
-                };
-                var startedMoving: boolean = false;
 
-                if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                    // TODO refactor the content of these if-staments into one modular function...
-                    var tilePresent: boolean = map.hasTile(
-                        getTileXFromWorldCoordinate(player.body.x - 32), 
-                        getTileYFromWorldCoordinate(player.body.y), 
-                        layers["collision"]);
-
-                    if (!tilePresent) {
-                        console.log("Moving left");
-                        getNextTileWorldCoordinates(-1);
-                        startedMoving = true;
-                    } else {
-                        console.log("Tile on the LEFT - not moving");
-                    }
-                } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                    var tilePresent: boolean = map.hasTile(
-                        getTileXFromWorldCoordinate(player.body.x + 32), 
-                        getTileYFromWorldCoordinate(player.body.y), 
-                        layers["collision"]);
-
-                    if (!tilePresent) {
-                        console.log("Moving right");
-                        startedMoving = true;
-                        getNextTileWorldCoordinates(+1);
-                    } else {
-                        console.log("Tile on the RIGHT - not moving");
-                    }
-                }
-
-                return startedMoving;
+            var getNextTileWorldCoordinates = (velocityDirectionMultiplier: number) => {
+                var velocity = 55 * velocityDirectionMultiplier;
+                nextPosition.x = getTileFlooredXWorldCoordinate(player.body.x + (tileSizes.width * velocityDirectionMultiplier))
+                player.body.velocity.x = velocity;
+                console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
             };
 
-            var checkFalling = () => {
-                var tilePresentBelow: boolean = map.hasTile(
-                    getTileXFromWorldCoordinate(player.body.x), 
-                    getTileYFromWorldCoordinate(player.body.y + 32), 
-                    layers["collision"]);
+            var falling = () => {
+                var tileX = getTileXFromWorldCoordinate(player.body.x);
+                var tileY = getTileYFromWorldCoordinate(player.body.y + 32);
 
-                if (!tilePresentBelow) {
-                    player.body.velocity.x = 0;
+                if (!map.hasTile(tileX, tileY, layers["collision"])) {
                     player.body.velocity.y = 55;
+                    console.log("Started falling");
+                    return true;
                 }
 
-                return tilePresentBelow;
+                return false;
             };
 
-            var treshold = 0.01;
-            if ( (player.body.velocity.x >= -treshold && player.body.velocity.x <= treshold) || 
-                 (player.body.velocity.y >= -treshold && player.body.velocity.y <= treshold) ) {
-                checkMovement();
-            } else {
-                console.log("moving");
+            var checkMovement = () => {
+                if (falling()) {
+
+                } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                    console.log("Moving left");
+                    getNextTileWorldCoordinates(-1);
+                } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                    console.log("Moving right");
+                    getNextTileWorldCoordinates(+1);
+                }
+            };
+
+            var startMovement = () => {
+                if ( (player.body.velocity.x >= -treshold && player.body.velocity.x <= treshold) ||
+                     (player.body.velocity.y <= treshold) ) {
+
+                    console.log("velocity.x:", player.body.velocity.x, ", velocity.y:", player.body.velocity.y);
+                    checkMovement();
+                }
+            };
+
+            var stopMovement = () => {
+                // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
                 var setPlayerToPosition: boolean = false;
 
-                // MOVING LEFT
+                // START FALLING -- arrived on tile below
+                if (player.body.velocity.y > treshold) {
+                    console.log("(F) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
+                }
+
+                // MOVING LEFT -- arrived to tile
                 if (player.body.velocity.x < -treshold && player.body.x <= nextPosition.x) {
                     setPlayerToPosition = true;
                     console.log("(L) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
                 }
 
-                // MOVING RIGHT
+                // MOVING RIGHT -- arrived to tile
                 if (player.body.velocity.x > treshold && player.body.x >= nextPosition.x) {
                     setPlayerToPosition = true;
                     console.log("(R) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
                 }
 
-                if (setPlayerToPosition) {
-                    player.body.x = nextPosition.x;
-                    
-                    if (checkFalling() && !checkMovement()) {
-                        canMove = true;
+                if (setPlayerToPosition) {                    
+                    if (!checkMovement()) {
+                        player.body.x = nextPosition.x;
                         player.body.velocity.x = 0;
                     }
                 }
-            }
+            };
+
+            startMovement();
+            stopMovement();
 
             var collisionHandler = (obj1: any, obj2: any) => {
                 game.stage.backgroundColor = '#992d2d';

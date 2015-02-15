@@ -2,7 +2,7 @@
   "name": "Fice",
   "version": "0.0.0",
   "description": "Solomon's key inspired puzzle game",
-  "main": "node_modules/http-server/bin/httpserver",
+  "main": "node_modules/http-server/bin/http-server",
   "dependencies-note": "We only have dependencies and zero dev-dependencies as we are running client-side code and need these to setup the static http server setup and compilation to build our client-code to be server like a rocket",
   "dependencies": {
     "http-server": "~0.7.4",
@@ -25,7 +25,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node node_modules/http-server/bin/http-server"
   },
   "keywords": [
     "puzzle",
