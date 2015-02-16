@@ -1,4 +1,8 @@
 
+interface TileSize {
+    width: number;
+    heigth: number;
+}
 
 interface TiledObject {
     gid: number;

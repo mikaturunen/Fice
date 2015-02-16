@@ -2,71 +2,10 @@
 
 var _ = require("lodash");
 
-
-// Loading the map explicitly
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
-
 // NOTE Please note that all code here is extremely experimental and on a level where I'm just seeing what Phaser can do :)
 
-var image = (imageName: string) => {
-    return "/assets/images/" + imageName;
-};
-
-var level = (levelName: string) => {
-    return "/assets/levels/" + levelName;
-};
-
 var lvlJson = require("../assets/levels/lvl.json");
-
-interface TileSize {
-    width: number;
-    heigth: number;
-}
-
-
-var tileSizes: TileSize = {
-    width: 32,
-    heigth: 32
-};
-
-/**
- * Creates a given type of Object from provided Type on Layer
- * @param {string} type - Type we are looking for
- * @param {string} layer - The layer we are peeking into
- * @param {any} tiledMapJson - Actual JSON of the Tiled outpu
- */
-var createFromType = (type: string, layer: string, tiledMapJson: any) => {
-    var results = <TiledObject[]> [ ];
-    tiledMapJson.layers.forEach((tmpLayer: any) => {
-        if (tmpLayer.name === layer) {
-            // correct layer found
-            tmpLayer.objects.forEach((object: any) => {
-                if (object.type === type) {
-                    // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to
-                    // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
-                    object.y -= tileSizes.heigth;
-                    results.push(object);
-                }
-            });
-        }
-    });
-
-    return results;
-};
-
-/**
- * Creates a Sprite object from the given element.
- * @param {any} element - element
- * @param {any} group - Group to associate the newly created Sprite with
- */
-var createSprite = (element: any, group: any) => {
-    var sprite = group.create(element.x, element.y, element.properties.sprite);
-
-    //copy all properties to the sprite
-    Object.keys(element.properties).forEach((key: string) => {
-        sprite[key] = element.properties[key];
-    });
-};
 
 var getTileFlooredXWorldCoordinate = (x: number) => {
     return Math.floor(x / tileSizes.width) * tileSizes.width;
@@ -99,6 +38,9 @@ var targetGroup: Phaser.Group;
 var player: Phaser.Sprite;
 var playerTween: any = { };
 var speedInMilliseconds: number = 500;
+
+// Only ONE thing at a time can move - player, tile or something else.
+var somethingMoving: boolean = false;
 
 var loadLayers = (map: any) => {
     [
@@ -133,14 +75,14 @@ var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, f
 var init = () => {
 
     var map: Phaser.Tilemap;
-    var canMove: boolean = true;
-    var moveStartTimer = 0;
-    var lastUpdateLoopTotalTimer = 0;
     var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
+    var startPosition: Phaser.Point = new Phaser.Point(0, 0);
     var treshold: number = 0.1;
 
     var playerToBlockCollision = (player: Phaser.Sprite, block: Phaser.Sprite) => {
         console.log("Player colliding with block", player, block);
+        block.body.velocity.x = player.body.velocity.x;
+        player.body.velocity.x = 0;
     };
 
     var playerToTargetCollision = (player: Phaser.Sprite, target: Phaser.Sprite) => {
