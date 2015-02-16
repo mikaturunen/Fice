@@ -139,6 +139,15 @@ var init = () => {
     var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
     var treshold: number = 0.1;
 
+    var playerToBlockCollision = (player: Phaser.Sprite, block: Phaser.Sprite) => {
+        console.log("Player colliding with block", player, block);
+    };
+
+    var playerToTargetCollision = (player: Phaser.Sprite, target: Phaser.Sprite) => {
+        // TODO kill player
+        console.log("kill player", player, target);
+    };
+
     /**
      * Start Phaser itself
      */
@@ -147,7 +156,7 @@ var init = () => {
 
         preload: () => {
             // Loading all the game related assets
-            game.load.tilemap("level", level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
+            game.load.tilemap("level", level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);2
             game.load.image("tiles", image("tiles.png"));
             game.load.spritesheet("player", image("player-sheet.png"), 32, 32);
             game.load.spritesheet("items", image("items-sheet.png"), 32, 32);
@@ -179,7 +188,7 @@ var init = () => {
             blockGroup = game.add.group();
             fillSpriteGroup(blockGroup, "BLOCK", "entities", 0, game);
             targetGroup = game.add.group();
-            fillSpriteGroup(blockGroup, "TARGET", "entities", 3, game);
+            fillSpriteGroup(targetGroup, "TARGET", "entities", 3, game);
         },
 
         update: () => {
@@ -258,14 +267,16 @@ var init = () => {
             stopMovement();
 
             var collisionHandler = (obj1: any, obj2: any) => {
-                game.stage.backgroundColor = '#992d2d';
+                console.log("obj1", obj1, ", obj2", obj2);
             };
 
-            game.physics.arcade.collide(player, layers["collision"], collisionHandler, null, this);
-            game.physics.arcade.collide(player, targetGroup);
-            game.physics.arcade.collide(player, blockGroup);
-            game.physics.arcade.collide(playerTween, blockGroup);
-            game.physics.arcade.collide(targetGroup, blockGroup);
+            // PLAYER VS THE OBJECTS
+            game.physics.arcade.collide(player, layers["collision"]);
+            game.physics.arcade.collide(player, targetGroup, playerToTargetCollision, null, this);
+            game.physics.arcade.collide(player, blockGroup, playerToBlockCollision, null, this);
+
+            // TARGET VS BLOCKS
+            game.physics.arcade.collide(targetGroup, blockGroup, collisionHandler, null, this);
         },
 
         render: () => {
