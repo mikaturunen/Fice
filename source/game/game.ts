@@ -43,9 +43,6 @@ function createGame(game: Phaser.Game) {
         player.init(game);
         blocks.init(game);
         fires.init(game);
-
-        targetGroup = game.add.group();
-        fillSpriteGroup(targetGroup, "TARGET", "entities", 3, game);
     };
 }
 
@@ -56,78 +53,36 @@ function createGame(game: Phaser.Game) {
  */
 function updateGame(game: Phaser.Game) {
     return () => {
-
-        var getNextTileWorldCoordinates = (velocityDirectionMultiplier: number) => {
-            var velocity = 55 * velocityDirectionMultiplier;
-            nextPosition.x = getTileFlooredXWorldCoordinate(player.body.x + (tileSizes.width * velocityDirectionMultiplier))
-            player.body.velocity.x = velocity;
-            console.log("current.x/nextPosition.x", player.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
-        };
-
-        var falling = () => {
-            var tileX = getTileXFromWorldCoordinate(player.body.x);
-            var tileY = getTileYFromWorldCoordinate(player.body.y + 32);
-
-            if (!map.hasTile(tileX, tileY, layers["collision"])) {
-                player.body.velocity.y = 55;
-                console.log("Started falling");
-                return true;
-            }
-
-            return false;
-        };
-
-        var checkMovement = () => {
-            if (falling()) {
-                // ?
-            } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                console.log("Moving left");
-                getNextTileWorldCoordinates(-1);
-            } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                console.log("Moving right");
-                getNextTileWorldCoordinates(+1);
-            }
-        };
-
-        var startMovement = () => {
-            if ( (player.body.velocity.x >= -treshold && player.body.velocity.x <= treshold) ||
-                 (player.body.velocity.y <= treshold) ) {
-
-                console.log("velocity.x:", player.body.velocity.x, ", velocity.y:", player.body.velocity.y);
-                checkMovement();
-            }
-        };
-
         var stopMovement = () => {
             // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
             var setPlayerToPosition: boolean = false;
 
             // START FALLING -- arrived on tile below
-            if (player.body.velocity.y > treshold) {
-                console.log("(F) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
+            if (player.sprite.body.velocity.y > treshold) {
+                console.log("(F) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
             }
 
             // MOVING LEFT -- arrived to tile
-            if (player.body.velocity.x < -treshold && player.body.x <= nextPosition.x) {
+            if (player.sprite.body.velocity.x < -treshold && player.sprite.body.x <= nextPosition.x) {
                 setPlayerToPosition = true;
-                console.log("(L) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
+                console.log("(L) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
             }
 
             // MOVING RIGHT -- arrived to tile
-            if (player.body.velocity.x > treshold && player.body.x >= nextPosition.x) {
+            if (player.sprite.body.velocity.x > treshold && player.sprite.body.x >= nextPosition.x) {
                 setPlayerToPosition = true;
-                console.log("(R) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
+                console.log("(R) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
             }
 
             if (setPlayerToPosition) {
                 if (!checkMovement()) {
-                    player.body.x = nextPosition.x;
-                    player.body.velocity.x = 0;
+                    player.sprite.body.x = nextPosition.x;
+                    player.sprite.body.velocity.x = 0;
                 }
             }
         };
 
-        startMovement();
+        player.checkInputs();
         stopMovement();
 
         // PLAYER VS THE OBJECTS

@@ -2,6 +2,47 @@
 
 import utilities = require("../utilities/utilities");
 import constants = require("../utilities/constants");
+import world = require("../world/tiles");
+
+/** @type {string} Current position. */
+var currentPosition: Phaser.point = new Phaser.Point(0, 0);
+/** @type {string} Position we are moving towards. */
+var nextPosition: Phaser.point = new Phaser.Point(0, 0);
+
+function falling() {
+    var tileX = utilities.getTileXFromWorldCoordinate(player.sprite.body.x);
+    var tileY = utilities.getTileYFromWorldCoordinate(player.sprite.body.y +
+        utilities.TileSize.heigth);
+
+    if (!world.map.hasTile(tileX, tileY, layers["collision"])) {
+        sprite.body.velocity.y = constants.Velocity;
+        console.log("Started falling");
+        return true;
+    }
+
+    return false;
+};
+
+function checkMovement() {
+    if (falling()) {
+        // ?
+    } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+        console.log("Moving left");
+        getNextTileWorldCoordinates(-1);
+    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+        console.log("Moving right");
+        getNextTileWorldCoordinates(+1);
+    }
+};
+
+function getNextTileWorldCoordinates(velocityDirectionMultiplier: number) {
+    var velocity = constants.Velocity * velocityDirectionMultiplier;
+    nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
+            player.sprite.body.x + (constants.TileSize.width * velocityDirectionMultiplier)
+        );
+    player.sprite.body.velocity.x = velocity;
+    console.log("current.x/nextPosition.x", player.sprite.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
+};
 
 /**
  * @module player
@@ -9,12 +50,6 @@ import constants = require("../utilities/constants");
  */
 module player {
     export var sprite: Phaser.Sprite;
-
-    /** @type {string} Current position. */
-    var currentPosition: Phaser.point = new Phaser.Point(0, 0);
-
-    /** @type {string} Position we are moving towards. */
-    var nextPosition: Phaser.point = new Phaser.Point(0, 0);
 
     /**
      * Initializes the player into the game correctly.
@@ -36,6 +71,15 @@ module player {
         player.body.setSize(constants.TileSize.width, constants.TileSize.heigth);
         game.physics.enable(player, Phaser.Physics.ARCADE);
     }
+
+    export function checkInputs() => {
+        if ( (sprite.body.velocity.x >= -treshold && sprite.body.velocity.x <= treshold) ||
+             (sprite.body.velocity.y <= treshold) ) {
+
+            console.log("velocity.x:", sprite.body.velocity.x, ", velocity.y:", sprite.body.velocity.y);
+            checkMovement();
+        }
+    };
 }
 
 export = player;
