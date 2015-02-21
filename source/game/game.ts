@@ -1,5 +1,11 @@
 "use strict";
 
+// Loading all the entity modules.
+var player = require("../player/player");
+var blocks = require("../blocks/blocks");
+var fires = require("../fires/fire");
+
+
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
 /**
@@ -132,10 +138,6 @@ function updateGame(game: Phaser.Game) {
 
         startMovement();
         stopMovement();
-
-        var collisionHandler = (obj1: any, obj2: any) => {
-            console.log("obj1", obj1, ", obj2", obj2);
-        };
 
         // PLAYER VS THE OBJECTS
         game.physics.arcade.collide(player, layers["collision"]);

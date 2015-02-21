@@ -32,6 +32,14 @@ module solver {
         console.log("kill player", player, target);
     };
 
+    /**
+     * Debug collision resolver. Prints out the collision targets and nothing else.
+     * @param {any} obj1 Object that is colliding to obj2.
+     * @param {any} obj2 Object that is the target of the collision
+     */
+    export function debugCollisionHandler(obj1: any, obj2: any) {
+        console.log("obj1", obj1, ", obj2", obj2);
+    };
 }
 
 export = solver;
