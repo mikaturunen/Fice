@@ -12,7 +12,7 @@ module blocks {
     var nextPosition: Phaser.point = new Phaser.Point(0, 0);
 
     export function init(game: Phaser.Game) {
-        blocks.blockGroup = game.add.group();
+        blocks.sprites = game.add.group();
         utilities.fillSpriteGroup(blockGroup, "BLOCK", "entities", 0, game);
     }
 }
