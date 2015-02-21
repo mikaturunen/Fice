@@ -1,8 +1,6 @@
 "use strict";
 
 // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
-// NOTE Please note that all code here is extremely experimental and on a level where I'm just seeing what Phaser can do :)
-
 var lvlJson = require("../assets/levels/lvl.json");
 
 /**

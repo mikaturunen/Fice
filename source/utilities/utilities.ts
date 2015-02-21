@@ -9,7 +9,7 @@ module utilities {
     /**
      * Gets floored tile X coordinate from world coordinates (x / tiles width) * tile width.
      * @param {number} x The pixel space X coordinate
-     * @returns {number} World coordinate floored to the closets tile coordinate
+     * @returns {number} World coordinate floored to the closets tile coordinate 
      */
     var getTileFlooredXWorldCoordinate = (x: number) => {
         return Math.floor(x / tileSizes.width) * tileSizes.width;

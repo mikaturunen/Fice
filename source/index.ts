@@ -2,22 +2,6 @@
 
 var _ = require("lodash");
 
-var getTileFlooredXWorldCoordinate = (x: number) => {
-    return Math.floor(x / tileSizes.width) * tileSizes.width;
-};
-
-var getTileFlooredYWorldCoordinate = (y: number) => {
-    return Math.floor(y / tileSizes.heigth) * tileSizes.heigth;
-};
-
-var getTileXFromWorldCoordinate = (x: number) => {
-    return Math.floor(x / tileSizes.width);
-};
-
-var getTileYFromWorldCoordinate = (y: number) => {
-    return Math.floor(y / tileSizes.heigth);
-};
-
 var getTileCoordinateFromWorldCoordinates = (x: number, y: number, sizes: TileSize): Phaser.Point => {
     return new Phaser.Point(Math.floor(x / sizes.width), Math.floor(y / sizes.heigth));
 };
@@ -34,21 +18,7 @@ var player: Phaser.Sprite;
 var playerTween: any = { };
 var speedInMilliseconds: number = 500;
 
-// Only ONE thing at a time can move - player, tile or something else.
-var somethingMoving: boolean = false;
 
-var loadLayers = (map: any) => {
-    [
-        "collision",
-        "background"
-    ]
-    .forEach((layer: string) => {
-        layers[layer] = map.createLayer(layer);
-        layers[layer].resizeWorld();
-    });
-
-    map.setCollisionBetween(1, 2000, true, "collision");
-};
 
 var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any) => {
     createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
