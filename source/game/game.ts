@@ -8,6 +8,35 @@ import world = require("../world/tiles");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
+function checkStopConditions(game: Phaser.Game) {
+    // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
+    var setPlayerToPosition: boolean = false;
+
+    // START FALLING -- arrived on tile below
+    if (player.sprite.body.velocity.y > treshold) {
+        console.log("(F) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
+    }
+
+    // MOVING LEFT -- arrived to tile
+    if (player.sprite.body.velocity.x < -treshold && player.sprite.body.x <= nextPosition.x) {
+        setPlayerToPosition = true;
+        console.log("(L) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
+    }
+
+    // MOVING RIGHT -- arrived to tile
+    if (player.sprite.body.velocity.x > treshold && player.sprite.body.x >= nextPosition.x) {
+        setPlayerToPosition = true;
+        console.log("(R) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
+    }
+
+    if (setPlayerToPosition) {
+        if (!checkMovement()) {
+            player.sprite.body.x = nextPosition.x;
+            player.sprite.body.velocity.x = 0;
+        }
+    }
+}
+
 /**
  * Preloads the game content. Used to assets into Phaser.
  * @param {Game.Phaser} game Phasers game object
@@ -53,37 +82,9 @@ function createGame(game: Phaser.Game) {
  */
 function updateGame(game: Phaser.Game) {
     return () => {
-        var stopMovement = () => {
-            // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
-            var setPlayerToPosition: boolean = false;
-
-            // START FALLING -- arrived on tile below
-            if (player.sprite.body.velocity.y > treshold) {
-                console.log("(F) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-            }
-
-            // MOVING LEFT -- arrived to tile
-            if (player.sprite.body.velocity.x < -treshold && player.sprite.body.x <= nextPosition.x) {
-                setPlayerToPosition = true;
-                console.log("(L) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-            }
-
-            // MOVING RIGHT -- arrived to tile
-            if (player.sprite.body.velocity.x > treshold && player.sprite.body.x >= nextPosition.x) {
-                setPlayerToPosition = true;
-                console.log("(R) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-            }
-
-            if (setPlayerToPosition) {
-                if (!checkMovement()) {
-                    player.sprite.body.x = nextPosition.x;
-                    player.sprite.body.velocity.x = 0;
-                }
-            }
-        };
-
         player.checkInputs();
-        stopMovement();
+
+        checkStopConditions();
 
         // PLAYER VS THE OBJECTS
         game.physics.arcade.collide(player, layers["collision"]);
