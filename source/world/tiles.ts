@@ -4,19 +4,10 @@
 
 
 module tiles {
-    export var layers: { [ layerName: string ]: Phaser.TilemapLayer; } = { };
-    var loadLayers = (map: any) => {
-        [
-            "collision",
-            "background"
-        ]
-        .forEach((layer: string) => {
-            layers[layer] = map.createLayer(layer);
-            layers[layer].resizeWorld();
-        });
+    export var map: Phaser.Tilemap;
 
-        map.setCollisionBetween(1, 2000, true, "collision");
-    };
+    export var layers: { [ layerName: string ]: Phaser.TilemapLayer; } = { };
 }
+
 
 export = tiles;
