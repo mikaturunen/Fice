@@ -26,6 +26,9 @@ module constants {
 
     /** @type {number} The constants velocity everything moves in the game. */
     export var Velocity: number = 500;
+
+    /** @tpye {number} Velocity treshold - when something moves slower than this, it stops */
+    export var VelocityTreshold: number = 0.1;
 };
 
 export = constants;

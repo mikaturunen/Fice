@@ -2,37 +2,13 @@
 
 var _ = require("lodash");
 
-var getTileCoordinateFromWorldCoordinates = (x: number, y: number, sizes: TileSize): Phaser.Point => {
-    return new Phaser.Point(Math.floor(x / sizes.width), Math.floor(y / sizes.heigth));
-};
-
-var getFlooredWorldCoordinateFromWorldCoordinates = (x: number, y: number, sizes: TileSize): Phaser.Point => {
-    return new Phaser.Point(Math.floor(x / sizes.width) * sizes.width, Math.floor(y / sizes.heigth) * sizes.heigth);
-};
-
-var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any) => {
-    createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
-        var position = getFlooredWorldCoordinateFromWorldCoordinates(obj.x, obj.y, tileSizes);
-        var sprite: Phaser.Sprite = game.add.sprite(position.x, position.y, "items");
-        // Enabling physics for the body
-        game.physics.enable(sprite, Phaser.Physics.ARCADE);
-        // Setting frame and body size for the physics
-        sprite.frame = frame;
-        sprite.body.setSize(32,32);
-        // Adding it into the blocks group
-        spriteGroup.add(sprite);
-    });
-};
-
 /**
  * Phaser initialization script
  */
 var init = () => {
 
     var map: Phaser.Tilemap;
-    var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
-    var startPosition: Phaser.Point = new Phaser.Point(0, 0);
-    var treshold: number = 0.1;
+
 
     var playerToBlockCollision = (player: Phaser.Sprite, block: Phaser.Sprite) => {
         console.log("Player colliding with block", player, block);
