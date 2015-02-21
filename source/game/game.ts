@@ -5,38 +5,11 @@ import player = require("../player/player");
 import blocks = require("../blocks/blocks");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
+import constant = require("../utilities/constants");
 import collision = require("../collision/solver");
+import utilities = require("../utilities/utilities");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
-
-function checkStopConditions(game: Phaser.Game) {
-    // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
-    var setPlayerToPosition: boolean = false;
-
-    // START FALLING -- arrived on tile below
-    if (player.sprite.body.velocity.y > treshold) {
-        console.log("(F) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-    }
-
-    // MOVING LEFT -- arrived to tile
-    if (player.sprite.body.velocity.x < -treshold && player.sprite.body.x <= nextPosition.x) {
-        setPlayerToPosition = true;
-        console.log("(L) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-    }
-
-    // MOVING RIGHT -- arrived to tile
-    if (player.sprite.body.velocity.x > treshold && player.sprite.body.x >= nextPosition.x) {
-        setPlayerToPosition = true;
-        console.log("(R) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-    }
-
-    if (setPlayerToPosition) {
-        if (!checkMovement()) {
-            player.sprite.body.x = nextPosition.x;
-            player.sprite.body.velocity.x = 0;
-        }
-    }
-}
 
 /**
  * Preloads the game content. Used to assets into Phaser.
@@ -45,17 +18,18 @@ function checkStopConditions(game: Phaser.Game) {
  */
 function preloadGame(game: Phaser.Game) {
     return () => {
-        game.load.tilemap("level", level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
-        game.load.image("tiles", image("tiles.png"));
-        game.load.spritesheet("player", image("player-sheet.png"), 32, 32);
-        game.load.spritesheet("items", image("items-sheet.png"), 32, 32);
+        game.load.tilemap("level", utilities.level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
+        game.load.image("tiles", utilities.image("tiles.png"));
+        game.load.spritesheet("player", utilities.image("player-sheet.png"), constant.TileSize.width, constant.TileSize.heigth);
+        game.load.spritesheet("items", utilities.image("items-sheet.png"), constant.TileSize.width, constant.TileSize.heigth);
     };
 }
 
 /**
  * Creates game content after loading assets.
  * @param {Game.Phaser} game Phasers game object
- * @returns {Function} Function that is given to Phaser.
+ * @returns {Function} Function that is given to Phaser.gulp
+
  */
 function createGame(game: Phaser.Game) {
     return () => {
@@ -83,11 +57,11 @@ function createGame(game: Phaser.Game) {
  */
 function updateGame(game: Phaser.Game) {
     return () => {
-        player.checkInputs();
+        player.checkInputs(game);
 
-        checkStopConditions();
+        player.checkStopConditions(game);
 
-        collision.resolve();
+        collision.resolve(game);
     };
 }
 
@@ -109,7 +83,7 @@ function renderGame(game: Phaser.Game) {
 module game {
 
     // Wacky resolution? Yes, I'm going currently for the remake of the original so..
-    export var game = new Phaser.Game(16 * tileSizes.width, 14 * tileSizes.heigth, Phaser.AUTO, "FIce",
+    export var game: Phaser.Game = new Phaser.Game(16 * constant.TileSize.width, 14 * constant.TileSize.heigth, Phaser.AUTO, "FIce",
     {
         preload: preloadGame(game),
         create: createGame(game),

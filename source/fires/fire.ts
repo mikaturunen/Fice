@@ -1,18 +1,19 @@
 "use strict";
 
+import utilities = require("../utilities/utilities");
 
 module fire {
     export var sprites: Phaser.Group;
 
     /** @type {string} Current position. */
-    var currentPosition: Phaser.point = new Phaser.Point(0, 0);
+    var currentPosition: Phaser.Point = new Phaser.Point(0, 0);
 
     /** @type {string} Position we are moving towards. */
-    var nextPosition: Phaser.point = new Phaser.Point(0, 0);
+    var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
 
     export function init(game: Phaser.Game) {
         fire.sprites = game.add.group();
-        utilities.fillSpriteGroup(blockGroup, "TARGET", "entities", 3, game);
+        utilities.fillSpriteGroup(fire.sprites, "TARGET", "entities", 3, game);
     }
 }
 

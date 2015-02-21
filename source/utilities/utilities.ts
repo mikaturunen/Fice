@@ -1,18 +1,22 @@
 
-import constants = require("./constants");
+import constant = require("./constants");
 
 /**
  * @module utilities
  * Utilities module for handling commonly used and repeatedly happening events in the game.
  */
 module utilities {
+    // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
+    // TODO create a proper loader for the lvl jsons. For now this'll do
+    export var lvlJson = require("../assets/levels/lvl.json");
+
     /**
      * Gets floored tile X coordinate from world coordinates (x / tiles width) * tile width.
      * @param {number} x The pixel space X coordinate
      * @returns {number} World coordinate floored to the closets tile coordinate
      */
     export function getTileFlooredXWorldCoordinate(x: number) {
-        return Math.floor(x / tileSizes.width) * constants.TileSize.width;
+        return Math.floor(x / constant.TileSize.width) * constant.TileSize.width;
     };
 
     /**
@@ -21,7 +25,7 @@ module utilities {
      * @returns {number} World coordinate floored to the closets tile coordinate
      */
     export function getTileFlooredYWorldCoordinate(y: number) {
-        return Math.floor(y / tileSizes.heigth) * constants.TileSize.heigth;
+        return Math.floor(y / constant.TileSize.heigth) * constant.TileSize.heigth;
     };
 
     /**
@@ -30,7 +34,7 @@ module utilities {
      * @returns {number} Floored tile coordinate.
      */
     export function getTileXFromWorldCoordinate(x: number) {
-        return Math.floor(x / constants.TileSize.width);
+        return Math.floor(x / constant.TileSize.width);
     };
 
     /**
@@ -39,7 +43,7 @@ module utilities {
      * @returns {number} Floored tile coordinate.
      */
     export function getTileYFromWorldCoordinate(y: number) {
-        return Math.floor(y / constants.TileSize.heigth);
+        return Math.floor(y / constant.TileSize.heigth);
     };
 
     /**
@@ -47,7 +51,7 @@ module utilities {
      * @param {string} levelName Name of the level to load. Including the .json.
      */
     export function image(imageName: string): string {
-        return constants.ImagesAssetDirectory + imageName;
+        return constant.ImagesAssetDirectory + imageName;
     };
 
     /**
@@ -55,7 +59,7 @@ module utilities {
      * @param {string} levelName Name of the level to load. Including the .json.
      */
     export function level(levelName: string): string {
-        return constants.LevelsAssetDirecoty + levelName;
+        return constant.LevelsAssetDirectory + levelName;
     };
 
     /**
@@ -90,7 +94,7 @@ module utilities {
                     if (object.type === type) {
                         // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to
                         // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
-                        object.y -= tileSizes.heigth;
+                        object.y -= constant.TileSize.heigth;
                         results.push(object);
                     }
                 });
@@ -109,14 +113,15 @@ module utilities {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function fillSpriteGroup(spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any)  {
-        createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
-            var position = getFlooredWorldCoordinateFromWorldCoordinates(obj.x, obj.y, tileSizes);
-            var sprite: Phaser.Sprite = game.add.sprite(position.x, position.y, "items");
+        createFromType(type, layer, utilities.lvlJson).forEach((obj: TiledObject) => {
+            var x: number = utilities.getTileFlooredXWorldCoordinate(obj.x);
+            var y: number = utilities.getTileFlooredYWorldCoordinate(obj.y);
+            var sprite: Phaser.Sprite = game.add.sprite(x, y, "items");
             // Enabling physics for the body
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
             // Setting frame and body size for the physics
             sprite.frame = frame;
-            sprite.body.setSize(32,32);
+            sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
             // Adding it into the blocks group
             spriteGroup.add(sprite);
         });

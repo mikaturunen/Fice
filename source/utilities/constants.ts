@@ -1,8 +1,5 @@
 "use strict";
 
-// TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
-var lvlJson = require("../assets/levels/lvl.json");
-
 // NOTE All constants are exported with capital letter
 
 /**
@@ -13,7 +10,7 @@ module constants {
     var levelsDirectory: string = "levels/";
     var imagesDirectory: string = "images/"
 
-    export var AssetDirectory: string = "/assets/";
+    export var AssetDirectoryPath: string = "/assets/";
 
     /** @type {string} Generalized location for level assets. */
     export var LevelsAssetDirectory: string = constants.AssetDirectoryPath + levelsDirectory;

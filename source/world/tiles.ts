@@ -10,9 +10,9 @@ module tiles {
     /**
      * Loads given layers to be the active Layers.
      */
-    export function loadLayers = (layers: string[]) => {
+    export function loadLayers(layers: string[]) {
         if (map) {
-            throw new "Map not created.";
+            throw "Map not created.";
         }
 
         layers.forEach((layer: string) => {
