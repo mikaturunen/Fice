@@ -32,7 +32,6 @@ function preloadGame() {
  * Creates game content after loading assets.
  * @param {Game.Phaser} game Phasers game object
  * @returns {Function} Function that is given to Phaser.gulp
-
  */
 function createGame() {
     return () => {

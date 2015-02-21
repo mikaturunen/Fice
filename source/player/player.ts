@@ -67,10 +67,12 @@ module player {
         var x: number = utilities.getTileFlooredXWorldCoordinate(start[0].x);
         var y: number = utilities.getTileFlooredYWorldCoordinate(start[0].y);
         sprite = game.add.sprite(x, y, "player");
+        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+        
         sprite.frame = 5;
         sprite.body.collideWorldBounds = true;
         sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
-        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
     }
 
     export function checkInputs(game: Phaser.Game) {

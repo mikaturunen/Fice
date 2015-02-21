@@ -15,7 +15,7 @@ module tiles {
      * Loads given layers to be the active Layers.
      */
     export function loadLayers(layers: string[]) {
-        if (map) {
+        if (!map) {
             throw "Map not created.";
         }
 
