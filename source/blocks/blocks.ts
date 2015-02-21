@@ -2,6 +2,10 @@
 
 import utilities = require("../utilities/utilities");
 
+/**
+ * @mobule blocks
+ * Blocks module. 
+ */
 module blocks {
     export var sprites: Phaser.Group;
 

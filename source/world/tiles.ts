@@ -2,6 +2,10 @@
 
 // Only ONE thing at a time can move - player, tile or something else.var somethingMoving: boolean = false;
 
+/**
+ * @module tiles
+ * World map, tiles module. Handles all tile and map data related functionality.
+ */
 module tiles {
     export var map: Phaser.Tilemap;
 
