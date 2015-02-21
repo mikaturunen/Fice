@@ -1,5 +1,4 @@
 "use strict";
 
-var _ = require("lodash");
-
-init();
+// Starts the game.
+import game = require("./game/game");

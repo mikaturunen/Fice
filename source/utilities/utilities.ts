@@ -2,33 +2,6 @@
 import constants = require("./constants");
 
 /**
- * Creates a given type of Object from provided Type on Layer
- * @param {string} type - Type we are looking for
- * @param {string} layer - The layer we are peeking into
- * @param {any} tiledMapJson - Actual JSON of the Tiled output
- * @return {TiledObject[]} Objects created from the tile layer and the given type.
- */
-function createFromType(type: string, layer: string, tiledMapJson: any): TiledObject[] {
-    var results = <TiledObject[]> [ ];
-
-    tiledMapJson.layers.forEach((tmpLayer: any) => {
-        if (tmpLayer.name === layer) {
-            // correct layer found
-            tmpLayer.objects.forEach((object: any) => {
-                if (object.type === type) {
-                    // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to
-                    // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
-                    object.y -= tileSizes.heigth;
-                    results.push(object);
-                }
-            });
-        }
-    });
-
-    return results;
-};
-
-/**
  * @module utilities
  * Utilities module for handling commonly used and repeatedly happening events in the game.
  */
@@ -38,7 +11,7 @@ module utilities {
      * @param {number} x The pixel space X coordinate
      * @returns {number} World coordinate floored to the closets tile coordinate
      */
-    var getTileFlooredXWorldCoordinate = (x: number) => {
+    export function getTileFlooredXWorldCoordinate(x: number) {
         return Math.floor(x / tileSizes.width) * constants.TileSize.width;
     };
 
@@ -47,7 +20,7 @@ module utilities {
      * @param {number} y The pixel space Y coordinate
      * @returns {number} World coordinate floored to the closets tile coordinate
      */
-    var getTileFlooredYWorldCoordinate = (y: number) => {
+    export function getTileFlooredYWorldCoordinate(y: number) {
         return Math.floor(y / tileSizes.heigth) * constants.TileSize.heigth;
     };
 
@@ -56,7 +29,7 @@ module utilities {
      * @param {number} x The pixel space X coordinate
      * @returns {number} Floored tile coordinate.
      */
-    var getTileXFromWorldCoordinate = (x: number) => {
+    export function getTileXFromWorldCoordinate(x: number) {
         return Math.floor(x / constants.TileSize.width);
     };
 
@@ -65,7 +38,7 @@ module utilities {
      * @param {number} y The pixel space Y coordinate
      * @returns {number} Floored tile coordinate.
      */
-    var getTileYFromWorldCoordinate = (y: number) => {
+    export function getTileYFromWorldCoordinate(y: number) {
         return Math.floor(y / constants.TileSize.heigth);
     };
 
@@ -97,6 +70,34 @@ module utilities {
         Object.keys(element.properties).forEach((key: string) => {
             sprite[key] = element.properties[key];
         });
+    };
+
+
+    /**
+     * Creates a given type of Object from provided Type on Layer
+     * @param {string} type - Type we are looking for
+     * @param {string} layer - The layer we are peeking into
+     * @param {any} tiledMapJson - Actual JSON of the Tiled output
+     * @return {TiledObject[]} Objects created from the tile layer and the given type.
+     */
+    export function createFromType(type: string, layer: string, tiledMapJson: any): TiledObject[] {
+        var results = <TiledObject[]> [ ];
+
+        tiledMapJson.layers.forEach((tmpLayer: any) => {
+            if (tmpLayer.name === layer) {
+                // correct layer found
+                tmpLayer.objects.forEach((object: any) => {
+                    if (object.type === type) {
+                        // Phaser uses top left, Tiled bottom left so we have to adjust the y position, to equal phaser coordinates and to
+                        // properly position the entities in Phaser we need to do Tiled.y - TileHeight = Phaser.y
+                        object.y -= tileSizes.heigth;
+                        results.push(object);
+                    }
+                });
+            }
+        });
+
+        return results;
     };
 
     /**

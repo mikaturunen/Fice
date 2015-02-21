@@ -1,10 +1,10 @@
 "use strict";
 
 // Loading all the entity modules.
-var player = require("../player/player");
-var blocks = require("../blocks/blocks");
-var fires = require("../fires/fire");
-
+import player = require("../player/player");
+import blocks = require("../blocks/blocks");
+import fires = require("../fires/fire");
+import world = require("../world/tiles");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
@@ -36,23 +36,14 @@ function createGame(game: Phaser.Game) {
         game.physics.startSystem(Phaser.Physics.ARCADE);
 
         // Creating the actual map from the tiled data
-        map = game.add.tilemap("level");
-        map.addTilesetImage("tiles", "tiles");
+        world.map = game.add.tilemap("level");
+        world.map.addTilesetImage("tiles", "tiles");
+        world.loadLayers([ "collision", "background" ]);
 
-        loadLayers(map);
+        player.init(game);
+        blocks.init(game);
+        fires.init(game);
 
-        // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
-        // --> https://github.com/photonstorm/phaser/pull/1609 -- merged, waits release
-        var start: TiledObject[] = createFromType("START", "entities", lvlJson);
-        var position = getFlooredWorldCoordinateFromWorldCoordinates(start[0].x, start[0].y, tileSizes);
-        player = game.add.sprite(position.x, position.y, "player");
-        player.frame = 5;
-        game.physics.enable(player, Phaser.Physics.ARCADE);
-        player.body.collideWorldBounds = true;
-        player.body.setSize(32,32);
-
-        blockGroup = game.add.group();
-        fillSpriteGroup(blockGroup, "BLOCK", "entities", 0, game);
         targetGroup = game.add.group();
         fillSpriteGroup(targetGroup, "TARGET", "entities", 3, game);
     };
@@ -88,7 +79,7 @@ function updateGame(game: Phaser.Game) {
 
         var checkMovement = () => {
             if (falling()) {
-
+                // ?
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                 console.log("Moving left");
                 getNextTileWorldCoordinates(-1);
