@@ -10,16 +10,6 @@ var getFlooredWorldCoordinateFromWorldCoordinates = (x: number, y: number, sizes
     return new Phaser.Point(Math.floor(x / sizes.width) * sizes.width, Math.floor(y / sizes.heigth) * sizes.heigth);
 };
 
-// TODO relocate these beasts into a proper location
-var layers: { [ layerName: string ]: Phaser.TilemapLayer; } = { };
-var blockGroup: Phaser.Group;
-var targetGroup: Phaser.Group;
-var player: Phaser.Sprite;
-var playerTween: any = { };
-var speedInMilliseconds: number = 500;
-
-
-
 var fillSpriteGroup = (spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any) => {
     createFromType(type, layer, lvlJson).forEach((obj: TiledObject) => {
         var position = getFlooredWorldCoordinateFromWorldCoordinates(obj.x, obj.y, tileSizes);
