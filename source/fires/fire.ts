@@ -2,6 +2,10 @@
 
 import utilities = require("../utilities/utilities");
 
+/**
+ * @module fire
+ * Fire entity module.
+ */
 module fire {
     export var sprites: Phaser.Group;
 

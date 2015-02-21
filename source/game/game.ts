@@ -11,12 +11,15 @@ import utilities = require("../utilities/utilities");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
+// Wacky resolution? Yes, I'm going currently for the remake of the original so..
+var game: Phaser.Game;
+
 /**
  * Preloads the game content. Used to assets into Phaser.
  * @param {Game.Phaser} game Phasers game object
  * @returns {Function} Function that is given to Phaser.
  */
-function preloadGame(game: Phaser.Game) {
+function preloadGame() {
     return () => {
         game.load.tilemap("level", utilities.level("lvl.json"), null, Phaser.Tilemap.TILED_JSON);
         game.load.image("tiles", utilities.image("tiles.png"));
@@ -31,7 +34,7 @@ function preloadGame(game: Phaser.Game) {
  * @returns {Function} Function that is given to Phaser.gulp
 
  */
-function createGame(game: Phaser.Game) {
+function createGame() {
     return () => {
         game.stage.backgroundColor = "#787878";
         //have the game centered horizontally
@@ -55,7 +58,7 @@ function createGame(game: Phaser.Game) {
  * @param {Game.Phaser} game Phasers game object
  * @returns {Function} Function that is given to Phaser.
  */
-function updateGame(game: Phaser.Game) {
+function updateGame() {
     return () => {
         player.checkInputs(game);
 
@@ -70,27 +73,26 @@ function updateGame(game: Phaser.Game) {
  * @param {Game.Phaser} game Phasers game object
  * @returns {Function} Function that is given to Phaser.
  */
-function renderGame(game: Phaser.Game) {
+function renderGame() {
     return () => {
     };
 }
 
 /**
- * @module game
+ * @module gameworld
  * Game module for Phaser that holds all the Phaser.Game object related content
  * inside itself
  */
-module game {
-
-    // Wacky resolution? Yes, I'm going currently for the remake of the original so..
-    export var game: Phaser.Game = new Phaser.Game(16 * constant.TileSize.width, 14 * constant.TileSize.heigth, Phaser.AUTO, "FIce",
-    {
-        preload: preloadGame(game),
-        create: createGame(game),
-        update: updateGame(game),
-        render: renderGame(game)
-    });
+module gameworld {
+    export function init() {
+        game = new Phaser.Game(16 * constant.TileSize.width, 14 * constant.TileSize.heigth, Phaser.AUTO, "FIce",
+        {
+            preload: preloadGame(),
+            create: createGame(),
+            update: updateGame(),
+            render: renderGame()
+        });
+    }
 }
 
-
-export = game;
+export = gameworld;

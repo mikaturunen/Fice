@@ -1,8 +1,8 @@
 /**
- * Gulp usage file for the whole project. 
+ * Gulp usage file for the whole project.
  * Usage cases: Compiling all the typescript files.
  */
- 
+
 "use strict";
 
 var gulp = require("gulp");
@@ -37,16 +37,6 @@ var taskTscClient = "ts-client";
 var taskUglifyJs = "uglify-js";
 var taskBrowserifyClient = "browserify";
 
-var tscClientOptions = {
-    declarationFiles: true,
-    noExternalResolve: false,
-    noImplicitAny: true,
-    removeComments: true,
-    target: "ES5",
-    module: "amd",
-    showErrors: true
-};
-
 gulp.task(taskTslintClient, function() {
     console.log("Linting Client side TS: " + JSON.stringify(typeDefinitionsClient, null, 2));
     return gulp.src(typeDefinitionsClient).pipe(tslint()).pipe(tslint.report("verbose"));
@@ -54,9 +44,9 @@ gulp.task(taskTslintClient, function() {
 
 gulp.task(taskBrowserifyClient, function() {
     var bundler = browserify({
-        entries: [ 
-            path.join(__dirname, "source/definitions/client.d.ts"), 
-            path.join(__dirname, "source/index.ts") 
+        entries: [
+            path.join(__dirname, "source/definitions/client.d.ts"),
+            path.join(__dirname, "source/index.ts")
         ],
         debug: false
     });
@@ -67,7 +57,7 @@ gulp.task(taskBrowserifyClient, function() {
             .bundle()
             .pipe(source( path.normalize("index.min.js") ))
             .pipe(buffer())
-            .pipe(uglify())
+        //    .pipe(uglify())
             .pipe(gulp.dest("source"));
     };
 

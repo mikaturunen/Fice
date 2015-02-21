@@ -8,7 +8,7 @@ import constant = require("./constants");
 module utilities {
     // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
     // TODO create a proper loader for the lvl jsons. For now this'll do
-    export var lvlJson = require("../assets/levels/lvl.json");
+    export var lvlJson = require("../../assets/levels/lvl.json");
 
     /**
      * Gets floored tile X coordinate from world coordinates (x / tiles width) * tile width.
