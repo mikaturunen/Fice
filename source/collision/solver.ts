@@ -1,5 +1,10 @@
 "use strict";
 
+import player = require("../player/player");
+import blocks = require("../blocks/blocks");
+import fires = require("../fires/fire");
+import world = require("../world/tiles");
+
 /**
  * @module solver
  * Super simple solver module for handling the different collision situations.
@@ -40,6 +45,16 @@ module solver {
     export function debugCollisionHandler(obj1: any, obj2: any) {
         console.log("obj1", obj1, ", obj2", obj2);
     };
+
+    export function resolve(game: Phaser.Game) {
+        // PLAYER VS THE OBJECTS
+        game.physics.arcade.collide(player.sprite, world.layers["collision"]);
+        game.physics.arcade.collide(player.sprite, fires.sprites, playerToTargetCollision, null, this);
+        game.physics.arcade.collide(player.sprite, blocks.sprites, playerToBlockCollision, null, this);
+
+        // TARGET VS BLOCKS
+        game.physics.arcade.collide(blocks.sprites, fires.sprites, debugCollisionHandler, null, this);
+    }
 }
 
 export = solver;

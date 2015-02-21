@@ -5,6 +5,7 @@ import player = require("../player/player");
 import blocks = require("../blocks/blocks");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
+import collision = require("../collision/solver");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
@@ -86,13 +87,7 @@ function updateGame(game: Phaser.Game) {
 
         checkStopConditions();
 
-        // PLAYER VS THE OBJECTS
-        game.physics.arcade.collide(player, layers["collision"]);
-        game.physics.arcade.collide(player, targetGroup, playerToTargetCollision, null, this);
-        game.physics.arcade.collide(player, blockGroup, playerToBlockCollision, null, this);
-
-        // TARGET VS BLOCKS
-        game.physics.arcade.collide(targetGroup, blockGroup, collisionHandler, null, this);
+        collision.resolve();
     };
 }
 
