@@ -2,11 +2,6 @@
 
 var _ = require("lodash");
 
-// TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
-// NOTE Please note that all code here is extremely experimental and on a level where I'm just seeing what Phaser can do :)
-
-var lvlJson = require("../assets/levels/lvl.json");
-
 var getTileFlooredXWorldCoordinate = (x: number) => {
     return Math.floor(x / tileSizes.width) * tileSizes.width;
 };
@@ -197,7 +192,7 @@ var init = () => {
                     console.log("(R) To position:", player.body.velocity.x, player.body.x, nextPosition.x);
                 }
 
-                if (setPlayerToPosition) {                    
+                if (setPlayerToPosition) {
                     if (!checkMovement()) {
                         player.body.x = nextPosition.x;
                         player.body.velocity.x = 0;

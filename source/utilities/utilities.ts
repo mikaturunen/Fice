@@ -1,12 +1,48 @@
 
 import constants = require("./constants");
 
-/** 
+/**
  * @module utilities
  * Utilities module for handling commonly used and repeatedly happening events in the game.
  */
 module utilities {
-    /** 
+    /**
+     * Gets floored tile X coordinate from world coordinates (x / tiles width) * tile width.
+     * @param {number} x The pixel space X coordinate
+     * @returns {number} World coordinate floored to the closets tile coordinate
+     */
+    var getTileFlooredXWorldCoordinate = (x: number) => {
+        return Math.floor(x / tileSizes.width) * tileSizes.width;
+    };
+
+    /**
+     * Gets floored tile Y coordinate from world coordinates (y / tiles height) * tile height.
+     * @param {number} y The pixel space Y coordinate
+     * @returns {number} World coordinate floored to the closets tile coordinate
+     */
+    var getTileFlooredYWorldCoordinate = (y: number) => {
+        return Math.floor(y / tileSizes.heigth) * tileSizes.heigth;
+    };
+
+    /**
+     * Gets tile X coordinate from world coordinates (x / tiles width).
+     * @param {number} x The pixel space X coordinate
+     * @returns {number} Floored tile coordinate.
+     */
+    var getTileXFromWorldCoordinate = (x: number) => {
+        return Math.floor(x / tileSizes.width);
+    };
+
+    /**
+     * Gets tile Y coordinate from world coordinates (y / tiles height).
+     * @param {number} y The pixel space Y coordinate
+     * @returns {number} Floored tile coordinate.
+     */
+    var getTileYFromWorldCoordinate = (y: number) => {
+        return Math.floor(y / tileSizes.heigth);
+    };
+
+    /**
      * Simply just hides the path for image assets. Makes it easier to build the paths everywhere.
      * @param {string} levelName Name of the level to load. Including the .json.
      */
@@ -14,7 +50,7 @@ module utilities {
         return constants.ImagesAssetDirectory + imageName;
     };
 
-    /** 
+    /**
      * Simply just hides the path for level assets. Makes it easier to build the paths everywhere.
      * @param {string} levelName Name of the level to load. Including the .json.
      */
