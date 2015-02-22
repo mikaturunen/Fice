@@ -50,7 +50,7 @@ module player {
         sprite.frame = 5;
         sprite.body.collideWorldBounds = true;
         sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
-
+        sprite.name = "player";
     }
 
     export function checkInputs(game: Phaser.Game) {

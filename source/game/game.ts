@@ -44,7 +44,7 @@ function createGame() {
         // Creating the actual map from the tiled data
         world.map = game.add.tilemap("level");
         world.map.addTilesetImage("tiles", "tiles");
-        world.loadLayers([ "collision", "background" ]);
+        world.loadLayers([ "background", "collision" ]);
 
         player.init(game);
         fires.init(game);

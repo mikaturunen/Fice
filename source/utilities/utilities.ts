@@ -147,6 +147,8 @@ module utilities {
             sprite.frame = frame;
             sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
             // Adding it into the blocks group
+            sprite.name = type;
+            sprite.z = 1000;
             spriteGroup.add(sprite);
         });
     };
