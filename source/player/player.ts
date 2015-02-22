@@ -47,7 +47,7 @@ module player {
         sprite = game.add.sprite(x, y, "player");
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
-        sprite.frame = 5;
+        sprite.frame = 9;
         sprite.body.collideWorldBounds = true;
         sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
         sprite.name = "player";
