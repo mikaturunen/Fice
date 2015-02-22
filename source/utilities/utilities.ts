@@ -62,7 +62,7 @@ module utilities {
         ) {
 
         var velocity = constant.Velocity * velocityDirectionMultiplier;
-        currentPosition.x = player.sprite.body.x;
+        currentPosition.x = sprite.body.x;
         nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
                 currentPosition.x + (constant.TileSize.width * velocityDirectionMultiplier)
             );

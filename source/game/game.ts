@@ -6,7 +6,7 @@ import blocks = require("../blocks/blocks");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
 import constant = require("../utilities/constants");
-import collision = require("../collision/solver");
+import collision = require("../physics/resolver");
 import utilities = require("../utilities/utilities");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render

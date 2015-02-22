@@ -1,6 +1,8 @@
 "use strict";
 
 import world = require("../world/tiles");
+import utilities = require("../utilities/utilities");
+import constant = require("../utilities/constants");
 
 /**
  * @module gravity
@@ -31,24 +33,13 @@ module gravity {
 
     export function checkCanGroupStartFalling(group: Phaser.Group) {
         // We use the same function for both sprites and groups
-        if (sprite.children && sprite.children <= 0) {
+        if (group.children && group.children.length <= 0) {
             return;
         }
 
         group.children.forEach((sprite: Phaser.Sprite) => {
             checkCanSpriteStartFalling(sprite);
         });
-        var tileX = utilities.getTileXFromWorldCoordinate(player.sprite.body.x);
-        var tileY = utilities.getTileYFromWorldCoordinate(player.sprite.body.y +
-            constant.TileSize.heigth);
-
-        if (!world.map.hasTile(tileX, tileY, world.layers["collision"])) {
-            player.sprite.body.velocity.y = constant.Velocity;
-            console.log("Started falling");
-            return true;
-        }
-
-        return false;
     };
 }
 
