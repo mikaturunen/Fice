@@ -58,7 +58,6 @@ module player {
               sprite.body.velocity.x <= constant.VelocityTreshold) ||
              (sprite.body.velocity.y <= constant.VelocityTreshold) ) {
 
-            console.log("velocity.x:", sprite.body.velocity.x, ", velocity.y:", sprite.body.velocity.y);
             checkMovement(game);
         }
     };

@@ -47,8 +47,8 @@ function createGame() {
         world.loadLayers([ "collision", "background" ]);
 
         player.init(game);
-        blocks.init(game);
         fires.init(game);
+        blocks.init(game);
     };
 }
 
