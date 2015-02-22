@@ -5,8 +5,13 @@ import blocks = require("../blocks/blocks");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
 
+// The whole idea is to try and use Phasers physics engine for physics body
+// resolving and on top of that we manually work some magic on it to make sure
+// everything moves in a lovely old-school way. Worst case scenario: We should
+// have ripped out the phasers physics engine from the start but we'll see ;)
+
 /**
- * @module solver
+ * @module resolver
  * Super simple solver module for handling the different collision situations.
  * Phasers physics engine will take care of actual "what collides with what" and
  * resolving the situations, we just handle the results. Like what happens if
@@ -14,7 +19,7 @@ import world = require("../world/tiles");
  * a bit as we are aiming to go with that authentic old-school physics style of
  * the game we are remaking so... We'll see.
  */
-module solver {
+module resolver {
 
     /**
      * Resolves Player collision with the target Block.
@@ -57,4 +62,4 @@ module solver {
     }
 }
 
-export = solver;
+export = resolver;

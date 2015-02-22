@@ -47,6 +47,30 @@ module utilities {
     };
 
     /**
+     * Gets the next tile floored tile coordinate in the given direction.
+     * Used for moving left and right to see when the sprite body needs to stop.
+     * @param {number} velocityDirectionMultiplier -1 for left, +1 for right.
+     * @param {Phaser.Sprite} sprite Sprite the velocity is applied to
+     * @param {Phaser.Point} currentPosition Position the Sprite is at currently.
+     * @param {Phaser.Point} nextPosition Position the Sprite is moving towards to.
+     */
+    export function getNextTileWorldCoordinates(
+            velocityDirectionMultiplier: number,
+            sprite: Phaser.Sprite,
+            currentPosition: Phaser.Point,
+            nextPosition: Phaser.Point
+        ) {
+
+        var velocity = constant.Velocity * velocityDirectionMultiplier;
+        currentPosition.x = player.sprite.body.x;
+        nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
+                currentPosition.x + (constant.TileSize.width * velocityDirectionMultiplier)
+            );
+        sprite.body.velocity.x = velocity;
+        console.log("current.x/nextPosition.x", sprite.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
+    };
+
+    /**
      * Simply just hides the path for image assets. Makes it easier to build the paths everywhere.
      * @param {string} levelName Name of the level to load. Including the .json.
      */

@@ -3,45 +3,23 @@
 import utilities = require("../utilities/utilities");
 import constant = require("../utilities/constants");
 import world = require("../world/tiles");
+import gravity = require("../physics/gravity");
 
 /** @type {string} Current position. */
 var currentPosition: Phaser.Point = new Phaser.Point(0, 0);
 /** @type {string} Position we are moving towards. */
 var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
 
-function falling() {
-    var tileX = utilities.getTileXFromWorldCoordinate(player.sprite.body.x);
-    var tileY = utilities.getTileYFromWorldCoordinate(player.sprite.body.y +
-        constant.TileSize.heigth);
-
-    if (!world.map.hasTile(tileX, tileY, world.layers["collision"])) {
-        player.sprite.body.velocity.y = constant.Velocity;
-        console.log("Started falling");
-        return true;
-    }
-
-    return false;
-};
-
 function checkMovement(game: Phaser.Game) {
-    if (falling()) {
+    if (gravity.checkCanSpriteStartFalling(player.sprite)) {
         // ?
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
         console.log("Moving left");
-        getNextTileWorldCoordinates(-1);
+        utilities.getNextTileWorldCoordinates(-1, player.sprite, currentPosition, nextPosition);
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         console.log("Moving right");
-        getNextTileWorldCoordinates(+1);
+        utilities.getNextTileWorldCoordinates(+1, player.sprite, currentPosition, nextPosition);
     }
-};
-
-function getNextTileWorldCoordinates(velocityDirectionMultiplier: number) {
-    var velocity = constant.Velocity * velocityDirectionMultiplier;
-    nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
-            player.sprite.body.x + (constant.TileSize.width * velocityDirectionMultiplier)
-        );
-    player.sprite.body.velocity.x = velocity;
-    console.log("current.x/nextPosition.x", player.sprite.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
 };
 
 /**
@@ -68,7 +46,7 @@ module player {
         var y: number = utilities.getTileFlooredYWorldCoordinate(start[0].y);
         sprite = game.add.sprite(x, y, "player");
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
-        
+
         sprite.frame = 5;
         sprite.body.collideWorldBounds = true;
         sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
