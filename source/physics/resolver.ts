@@ -42,6 +42,12 @@ module resolver {
         console.log("kill player", player, target);
     };
 
+    export function iceOverlapsFire(ice: Phaser.Sprite, fire: Phaser.Sprite) {
+        console.log("Ice is overlapping fire.");
+        ice.kill();
+        fire.kill();
+    };
+
     /**
      * Debug collision resolver. Prints out the collision targets and nothing else.
      * @param {any} obj1 Object that is colliding to obj2.
@@ -58,7 +64,7 @@ module resolver {
         game.physics.arcade.collide(player.sprite, blocks.sprites, playerToBlockCollision, null, this);
 
         // TARGET VS BLOCKS
-        game.physics.arcade.collide(blocks.sprites, fires.sprites, debugCollisionHandler, null, this);
+        game.physics.arcade.overlap(blocks.sprites, fires.sprites, iceOverlapsFire, null, this);
     }
 }
 
