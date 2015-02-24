@@ -2,7 +2,7 @@
 
 // Loading all the entity modules.
 import player = require("../player/player");
-import blocks = require("../blocks/blocks");
+import blocks = require("../ice/ice");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
 import constant = require("../utilities/constants");
@@ -62,8 +62,9 @@ function createGame() {
 function updateGame() {
     return () => {
         player.checkInputs(game);
-
         player.checkStopConditions(game);
+
+        blocks.update(game);
 
         collision.resolve(game);
     };

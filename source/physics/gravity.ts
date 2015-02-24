@@ -24,7 +24,7 @@ module gravity {
 
         if (!world.map.hasTile(tileX, tileY, world.layers["collision"])) {
             sprite.body.velocity.y = constant.Velocity;
-            console.log("Started falling");
+            console.log("Started falling", sprite.name);
             return true;
         }
 

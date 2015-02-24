@@ -1,7 +1,7 @@
 "use strict";
 
 import player = require("../player/player");
-import blocks = require("../blocks/blocks");
+import ice = require("../ice/ice");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
 
@@ -22,18 +22,18 @@ import world = require("../world/tiles");
 module resolver {
 
     /**
-     * Resolves Player collision with the target Block.
+     * Resolves Player collision with the target ice.
      * @param {Phaser.Sprite} player Player
-     * @param {Phaser.Sprite} block Block
+     * @param {Phaser.Sprite} ice Ice
      */
-    export function playerToBlockCollision(player: Phaser.Sprite, block: Phaser.Sprite) {
-        console.log("Player colliding with block", player, block);
-        block.body.velocity.x = player.body.velocity.x;
+    export function playerToIceCollision(player: Phaser.Sprite, ice: Phaser.Sprite) {
+        console.log("Player colliding with Ice", player, ice);
+        ice.body.velocity.x = player.body.velocity.x;
         player.body.velocity.x = 0;
     };
 
     /**
-     * Resolves the situation where the Ice block overlaps an ice block.
+     * Resolves the situation where the Ice block overlaps an Fire block.
      */
     export function iceExtinguishesFire(ice: Phaser.Sprite, fire: Phaser.Sprite) {
         console.log("Ice is overlapping fire.");
@@ -66,14 +66,14 @@ module resolver {
     export function resolve(game: Phaser.Game) {
         // PLAYER VS THE OBJECTS
 
-        game.physics.arcade.collide(player.sprite, blocks.sprites, playerToBlockCollision, null, this);
+        game.physics.arcade.collide(player.sprite, ice.sprites, playerToIceCollision, null, this);
 
         // Real, solved cases.
         game.physics.arcade.collide(player.sprite, world.layers["collision"]);
-        game.physics.arcade.collide(blocks.sprites, world.layers["collision"]);
+        game.physics.arcade.collide(ice.sprites, world.layers["collision"]);
 
         game.physics.arcade.overlap(player.sprite, fires.sprites, playerDiesOnFire, null, this);
-        game.physics.arcade.overlap(blocks.sprites, fires.sprites, iceExtinguishesFire, null, this);
+        game.physics.arcade.overlap(ice.sprites, fires.sprites, iceExtinguishesFire, null, this);
     }
 }
 
