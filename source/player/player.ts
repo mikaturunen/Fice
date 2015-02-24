@@ -62,7 +62,18 @@ module player {
         }
     };
 
+    /**
+     * What happens when the player dies.
+     */
+    export function death() {
+        // TODO: Play death animation, show menu for quit + retry
+        sprite.kill();
+    }
 
+    /**
+     * Checks if the player sprite needs to stop. Stops the player entity when required.
+     * @param {Phaser.Game} game Game object from Phaser.
+     */
     export function checkStopConditions(game: Phaser.Game) {
         // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
         var setPlayerToPosition: boolean = false;
