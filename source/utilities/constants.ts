@@ -22,10 +22,11 @@ module constants {
     export var TileSize: TileSize = { width: 32, heigth: 32 };
 
     /** @type {number} The constants velocity everything moves in the game. */
-    export var Velocity: number = 55;
+    export var Velocity: number = 0.025;
 
     /** @tpye {number} Velocity treshold - when something moves slower than this, it stops */
-    export var VelocityTreshold: number = 0.1;
+    export var VelocityTreshold: number = 0.25;
+
 };
 
 export = constants;

@@ -72,6 +72,8 @@ function updateGame() {
  */
 function renderGame() {
     return () => {
+        game.debug.text("Moving bodies  : " + physics.isMovingBodies, 10, 10);
+        game.debug.text("Player movement: " + player.sprite.body.velocity.x, 10, 25);
     };
 }
 

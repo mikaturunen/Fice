@@ -4,11 +4,14 @@ import utilities = require("../utilities/utilities");
 import constant = require("../utilities/constants");
 import world = require("../world/tiles");
 import gravity = require("../physics/gravity");
+import physics = require("../physics/physics");
 
 /** @type {string} Current position. */
 var currentPosition: Phaser.Point = new Phaser.Point(0, 0);
 /** @type {string} Position we are moving towards. */
 var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
+
+var input: Phaser.CursorKeys; 
 
 function checkMovement(game: Phaser.Game) {
     if (gravity.checkCanSpriteStartFalling(player.sprite)) {
@@ -45,14 +48,43 @@ module player {
         var x: number = utilities.getTileFlooredXWorldCoordinate(start[0].x);
         var y: number = utilities.getTileFlooredYWorldCoordinate(start[0].y);
         sprite = game.add.sprite(x, y, "player");
+        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+
         sprite.frame = 5;
         sprite.name = "player";
+        // Current velocity of the sprite
         sprite.body.velocity = new Phaser.Point(0, 0);
+        // Next position of the body -- used with the tile based movement.
         sprite.body.next = new Phaser.Point(0, 0);
+
+        input = game.input.keyboard.createCursorKeys();
     }
 
     export function checkInputs(game: Phaser.Game) {
+        if (physics.isMovingBodies) {
+            return;
+        }
 
+        if (input.left.isDown) {
+            console.log("left");
+            sprite.body.velocity.x = constant.Velocity * game.time.elapsed * -1;
+            sprite.body.velocity.y = 0;
+            sprite.body.next.x = sprite.body.x - (constant.TileSize.width / 2);
+            sprite.body.next.y = sprite.body.y;
+        } else if (input.right.isDown) {
+            console.log("right");
+            sprite.body.velocity.x = constant.Velocity * game.time.elapsed;
+            sprite.body.velocity.y = 0;
+            sprite.body.next.x = sprite.body.x + (constant.TileSize.width * 1.5);
+            sprite.body.next.y = sprite.body.y;
+        }
+
+        console.log("sprite.body.velocity.x " + sprite.body.velocity.x);
+        if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
+            sprite.body.velocity.x <= -constant.VelocityTreshold) {
+
+            physics.isMovingBodies = true;
+        }
     };
 
     /**
@@ -63,42 +95,11 @@ module player {
         sprite.kill();
     }
 
-    /**
-     * Checks if the player sprite needs to stop. Stops the player entity when required.
-     * @param {Phaser.Game} game Game object from Phaser.
-     */
-    export function checkStopConditions(game: Phaser.Game) {
-        // CHECK FOR COLLISION WITH NEXT TILE -> STOP PLAYER
-        var setPlayerToPosition: boolean = false;
-
-        // START FALLING -- arrived on tile below
-        if (player.sprite.body.velocity.y > constant.VelocityTreshold) {
-            console.log("(F) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-        }
-
-        // MOVING LEFT -- arrived to tile
-        if (player.sprite.body.velocity.x < -constant.VelocityTreshold && player.sprite.body.x <= nextPosition.x) {
-            setPlayerToPosition = true;
-            console.log("(L) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-        }
-
-        // MOVING RIGHT -- arrived to tile
-        if (player.sprite.body.velocity.x > constant.VelocityTreshold && player.sprite.body.x >= nextPosition.x) {
-            setPlayerToPosition = true;
-            console.log("(R) To position:", player.sprite.body.velocity.x, player.sprite.body.x, nextPosition.x);
-        }
-
-        if (setPlayerToPosition) {
-            if (!checkMovement(game)) {
-                player.sprite.body.x = nextPosition.x;
-                player.sprite.body.velocity.x = 0;
-            }
-        }
-    }
-
     export function update(game: Phaser.Game) {
         checkInputs(game);
 
+        sprite.body.x += sprite.body.velocity.x;
+        sprite.body.y += sprite.body.velocity.y;
     }
 }
 
