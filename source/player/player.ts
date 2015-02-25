@@ -15,10 +15,10 @@ function checkMovement(game: Phaser.Game) {
         // ?
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
         console.log("Moving left");
-        utilities.getNextTileWorldCoordinates(-1, player.sprite, currentPosition, nextPosition);
+        utilities.getNextTileWorldCoordinates(-1, player.sprite, currentPosition, nextPosition, game);
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         console.log("Moving right");
-        utilities.getNextTileWorldCoordinates(+1, player.sprite, currentPosition, nextPosition);
+        utilities.getNextTileWorldCoordinates(+1, player.sprite, currentPosition, nextPosition, game);
     }
 };
 
@@ -45,21 +45,14 @@ module player {
         var x: number = utilities.getTileFlooredXWorldCoordinate(start[0].x);
         var y: number = utilities.getTileFlooredYWorldCoordinate(start[0].y);
         sprite = game.add.sprite(x, y, "player");
-        game.physics.enable(sprite, Phaser.Physics.ARCADE);
-
         sprite.frame = 5;
-        sprite.body.collideWorldBounds = true;
-        sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
         sprite.name = "player";
+        sprite.body.velocity = new Phaser.Point(0, 0);
+        sprite.body.next = new Phaser.Point(0, 0);
     }
 
     export function checkInputs(game: Phaser.Game) {
-        if ( (sprite.body.velocity.x >= -constant.VelocityTreshold &&
-              sprite.body.velocity.x <= constant.VelocityTreshold) ||
-             (sprite.body.velocity.y <= constant.VelocityTreshold) ) {
 
-            checkMovement(game);
-        }
     };
 
     /**
@@ -101,6 +94,11 @@ module player {
                 player.sprite.body.velocity.x = 0;
             }
         }
+    }
+
+    export function update(game: Phaser.Game) {
+        checkInputs(game);
+
     }
 }
 

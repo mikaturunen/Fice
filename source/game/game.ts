@@ -8,6 +8,7 @@ import world = require("../world/tiles");
 import constant = require("../utilities/constants");
 import collision = require("../physics/resolver");
 import utilities = require("../utilities/utilities");
+import physics = require("../physics/physics");
 
 // NOTE (ONCE): pre -> create -> (REPEAT): update -> render
 
@@ -41,7 +42,6 @@ function createGame() {
         //have the game centered horizontally
         game.scale.pageAlignHorizontally = true;
         game.scale.pageAlignVertically = true;
-        game.physics.startSystem(Phaser.Physics.ARCADE);
 
         // Creating the actual map from the tiled data
         world.map = game.add.tilemap("level");
@@ -49,8 +49,6 @@ function createGame() {
         world.loadLayers([ "background", "collision" ]);
 
         player.init(game);
-        fires.init(game);
-        blocks.init(game);
     };
 }
 
@@ -61,12 +59,9 @@ function createGame() {
  */
 function updateGame() {
     return () => {
-        player.checkInputs(game);
-        player.checkStopConditions(game);
+        player.update(game);
 
-        blocks.update(game);
-
-        collision.resolve(game);
+        physics.update(game);
     };
 }
 

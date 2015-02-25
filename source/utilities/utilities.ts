@@ -58,7 +58,8 @@ module utilities {
             velocityDirectionMultiplier: number,
             sprite: Phaser.Sprite,
             currentPosition: Phaser.Point,
-            nextPosition: Phaser.Point
+            nextPosition: Phaser.Point,
+            game: Phaser.Game
         ) {
 
         var velocity = constant.Velocity * velocityDirectionMultiplier;
@@ -66,7 +67,7 @@ module utilities {
         nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
                 currentPosition.x + (constant.TileSize.width * velocityDirectionMultiplier)
             );
-        sprite.body.velocity.x = velocity;
+        sprite.body.velocity.x = velocity * game.time.elapsed;
         console.log("current.x/nextPosition.x", sprite.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
     };
 
