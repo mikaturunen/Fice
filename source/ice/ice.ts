@@ -30,7 +30,11 @@ module ice {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function update(game: Phaser.Game) {
-        sprites.children.forEach((ice: Phaser.Sprite) => gravity.checkCanSpriteStartFalling(ice));
+        sprites.children.forEach((ice: Phaser.Sprite) => {
+            if (gravity.checkCanSpriteStartFalling(ice)) {
+                ice.body.velocity.x = 0;
+            }
+        });
     }
 }
 
