@@ -13,18 +13,6 @@ var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
 
 var input: Phaser.CursorKeys; 
 
-function checkMovement(game: Phaser.Game) {
-    if (gravity.checkCanSpriteStartFalling(player.sprite)) {
-        // ?
-    } else if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-        console.log("Moving left");
-        utilities.getNextTileWorldCoordinates(-1, player.sprite, currentPosition, nextPosition, game);
-    } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-        console.log("Moving right");
-        utilities.getNextTileWorldCoordinates(+1, player.sprite, currentPosition, nextPosition, game);
-    }
-};
-
 /**
  * @module player
  * Player module for controlling and managing the Player entity
@@ -45,8 +33,8 @@ module player {
             throw "Could not load START entity from given map. Please make sure you have a start defined";
         }
 
-        var x: number = utilities.getTileFlooredXWorldCoordinate(start[0].x);
-        var y: number = utilities.getTileFlooredYWorldCoordinate(start[0].y);
+        var x: number = utilities.floorToWorldTileCoordinate(start[0].x);
+        var y: number = utilities.floorToWorldTileCoordinate(start[0].y);
         sprite = game.add.sprite(x, y, "player");
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
@@ -69,22 +57,21 @@ module player {
             console.log("left");
             sprite.body.velocity.x = constant.Velocity * game.time.elapsed * -1;
             sprite.body.velocity.y = 0;
-            sprite.body.next.x = sprite.body.x - (constant.TileSize.width / 2);
+            sprite.body.next.x = utilities.floorToWorldTileCoordinate(( sprite.body.x - (constant.TileSize.width / 2) ));
             sprite.body.next.y = sprite.body.y;
         } else if (input.right.isDown) {
             console.log("right");
             sprite.body.velocity.x = constant.Velocity * game.time.elapsed;
             sprite.body.velocity.y = 0;
-            sprite.body.next.x = sprite.body.x + (constant.TileSize.width * 1.5);
+            sprite.body.next.x = utilities.floorToWorldTileCoordinate(sprite.body.x + (constant.TileSize.width * 1.5));
             sprite.body.next.y = sprite.body.y;
         }
 
-        console.log("sprite.body.velocity.x " + sprite.body.velocity.x);
         if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
             sprite.body.velocity.x <= -constant.VelocityTreshold) {
 
             physics.isMovingBodies = true;
-        }
+        } 
     };
 
     /**
@@ -97,6 +84,11 @@ module player {
 
     export function update(game: Phaser.Game) {
         checkInputs(game);
+
+        if (utilities.onNextPosition(sprite.body.velocity, sprite.body, sprite.body.next)) {
+            sprite.body.velocity.x = sprite.body.velocity.y = 0;
+            physics.isMovingBodies = false;
+        }
 
         sprite.body.x += sprite.body.velocity.x;
         sprite.body.y += sprite.body.velocity.y;

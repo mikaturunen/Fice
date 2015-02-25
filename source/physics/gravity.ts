@@ -18,8 +18,8 @@ module gravity {
      * @param {Phaser.Sprite} sprite Sprite to check for if it can start falling
      */
     export function checkCanSpriteStartFalling(sprite: Phaser.Sprite) {
-        var tileX = utilities.getTileXFromWorldCoordinate(sprite.body.x);
-        var tileY = utilities.getTileYFromWorldCoordinate(sprite.body.y +
+        var tileX = utilities.floorToWorldTileCoordinate(sprite.body.x);
+        var tileY = utilities.floorToWorldTileCoordinate(sprite.body.y +
             constant.TileSize.heigth);
 
         if (!world.map.hasTile(tileX, tileY, world.layers["collision"])) {

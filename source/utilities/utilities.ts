@@ -10,66 +10,24 @@ module utilities {
     // TODO create a proper loader for the lvl jsons. For now this'll do
     export var lvlJson = require("../../assets/levels/lvl.json");
 
-    /**
-     * Gets floored tile X coordinate from world coordinates (x / tiles width) * tile width.
-     * @param {number} x The pixel space X coordinate
-     * @returns {number} World coordinate floored to the closets tile coordinate
-     */
-    export function getTileFlooredXWorldCoordinate(x: number) {
-        return Math.floor(x / constant.TileSize.width) * constant.TileSize.width;
-    };
+    export function floorToWorldTileCoordinate(value: number) {
+        return Math.floor( value / constant.TileSize.width ) * constant.TileSize.width;
+    }
 
-    /**
-     * Gets floored tile Y coordinate from world coordinates (y / tiles height) * tile height.
-     * @param {number} y The pixel space Y coordinate
-     * @returns {number} World coordinate floored to the closets tile coordinate
-     */
-    export function getTileFlooredYWorldCoordinate(y: number) {
-        return Math.floor(y / constant.TileSize.heigth) * constant.TileSize.heigth;
-    };
+    export function onNextPosition(velocity: Phaser.Point, currentPosition: Phaser.Point, nextPosition: Phaser.Point) {
+        if (velocity.x > 0) {
+            // Moving right
+            return currentPosition.x >= nextPosition.x;
+        } else if (velocity.x < 0) {
+            // Moving left
+            return currentPosition.x <= nextPosition.x;
+        } else if (velocity.y > 0) {
+            // Falling down
+            return (currentPosition.y + constant.TileSize.heigth) >= nextPosition.y;
+        }
 
-    /**
-     * Gets tile X coordinate from world coordinates (x / tiles width).
-     * @param {number} x The pixel space X coordinate
-     * @returns {number} Floored tile coordinate.
-     */
-    export function getTileXFromWorldCoordinate(x: number) {
-        return Math.floor(x / constant.TileSize.width);
-    };
-
-    /**
-     * Gets tile Y coordinate from world coordinates (y / tiles height).
-     * @param {number} y The pixel space Y coordinate
-     * @returns {number} Floored tile coordinate.
-     */
-    export function getTileYFromWorldCoordinate(y: number) {
-        return Math.floor(y / constant.TileSize.heigth);
-    };
-
-    /**
-     * Gets the next tile floored tile coordinate in the given direction.
-     * Used for moving left and right to see when the sprite body needs to stop.
-     * @param {number} velocityDirectionMultiplier -1 for left, +1 for right.
-     * @param {Phaser.Sprite} sprite Sprite the velocity is applied to
-     * @param {Phaser.Point} currentPosition Position the Sprite is at currently.
-     * @param {Phaser.Point} nextPosition Position the Sprite is moving towards to.
-     */
-    export function getNextTileWorldCoordinates(
-            velocityDirectionMultiplier: number,
-            sprite: Phaser.Sprite,
-            currentPosition: Phaser.Point,
-            nextPosition: Phaser.Point,
-            game: Phaser.Game
-        ) {
-
-        var velocity = constant.Velocity * velocityDirectionMultiplier;
-        currentPosition.x = sprite.body.x;
-        nextPosition.x = utilities.getTileFlooredXWorldCoordinate(
-                currentPosition.x + (constant.TileSize.width * velocityDirectionMultiplier)
-            );
-        sprite.body.velocity.x = velocity * game.time.elapsed;
-        console.log("current.x/nextPosition.x", sprite.body.x, "/", nextPosition.x, ", nextPosition.y", nextPosition.y, ", velocity:", velocity);
-    };
+        return false;
+    }
 
     /**
      * Simply just hides the path for image assets. Makes it easier to build the paths everywhere.
@@ -139,8 +97,8 @@ module utilities {
      */
     export function fillSpriteGroup(spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any)  {
         createFromType(type, layer, utilities.lvlJson).forEach((obj: TiledObject) => {
-            var x: number = utilities.getTileFlooredXWorldCoordinate(obj.x);
-            var y: number = utilities.getTileFlooredYWorldCoordinate(obj.y);
+            var x: number = utilities.floorToWorldTileCoordinate(obj.x);
+            var y: number = utilities.floorToWorldTileCoordinate(obj.y);
             var sprite: Phaser.Sprite = game.add.sprite(x, y, "items");
             // Enabling physics for the body
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
