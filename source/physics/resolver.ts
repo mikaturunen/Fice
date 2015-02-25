@@ -74,6 +74,8 @@ module resolver {
 
         game.physics.arcade.overlap(player.sprite, fires.sprites, playerDiesOnFire, null, this);
         game.physics.arcade.overlap(ice.sprites, fires.sprites, iceExtinguishesFire, null, this);
+
+        game.physics.arcade.collide(ice.sprites, ice.sprites);
     }
 }
 
