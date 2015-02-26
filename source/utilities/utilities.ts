@@ -23,7 +23,7 @@ module utilities {
             return body.x <= body.next.x;
         } else if (body.velocity.y > 0) {
             // Falling down
-            return (body.y + constant.TileSize.heigth) >= body.next.y;
+            return (body.y) >= body.next.y;
         }
 
         return false;
