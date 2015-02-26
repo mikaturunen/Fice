@@ -67,6 +67,9 @@ module player {
             sprite.body.next.y = sprite.body.y;
         }
 
+        // TODO climbing
+        // TODO magic wand / breathe ice
+
         if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
             sprite.body.velocity.x <= -constant.VelocityTreshold) {
 
