@@ -45,6 +45,7 @@ module player {
         // Next position of the body -- used with the tile based movement.
         sprite.body.next = new Phaser.Point(0, 0);
 
+        physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
     }
 
@@ -69,12 +70,6 @@ module player {
 
         // TODO climbing
         // TODO magic wand / breathe ice
-
-        if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
-            sprite.body.velocity.x <= -constant.VelocityTreshold) {
-
-            physics.isMovingBodies = true;
-        } 
     };
 
     /**
@@ -88,13 +83,7 @@ module player {
     export function update(game: Phaser.Game) {
         checkInputs(game);
 
-        if (utilities.onNextPosition(sprite.body.velocity, sprite.body, sprite.body.next)) {
-            sprite.body.velocity.x = sprite.body.velocity.y = 0;
-            physics.isMovingBodies = false;
-        }
-
-        sprite.body.x += sprite.body.velocity.x;
-        sprite.body.y += sprite.body.velocity.y;
+    
     }
 }
 

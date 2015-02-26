@@ -1,19 +1,20 @@
 
-import player = require("../player/player");
+import constant = require("../utilities/constants");
+import utilities = require("../utilities/utilities");
 
-function isMoving(sprite: Phaser.Sprite) {
-    return  sprite.body.velocity.x >=  constant.VelocityTreshold || 
-            sprite.body.velocity.x <= -constant.VelocityTreshold ||
-            sprite.body.velocity.y >=  constant.VelocityTreshold ||
-            sprite.body.velocity.y <= -constant.VelocityTreshold;
+function isMoving(body: PhysicsBody) {
+    return  body.velocity.x >=  constant.VelocityTreshold || 
+            body.velocity.x <= -constant.VelocityTreshold ||
+            body.velocity.y >=  constant.VelocityTreshold ||
+            body.velocity.y <= -constant.VelocityTreshold;
 }
 
-function move(sprite: Phaser.Sprite) {
-    sprite.body.x += sprite.body.velocity.x;
-    sprite.body.y += sprite.body.velocity.y;
+function move(body: PhysicsBody) {
+    body.x += body.velocity.x;
+    body.y += body.velocity.y;
 
-    if (utilities.onNextPosition(sprite.body.velocity, sprite.body, sprite.body.next)) {
-        sprite.body.velocity.x = sprite.body.velocity.y = 0;
+    if (utilities.onNextPosition(body)) {
+        body.velocity.x = body.velocity.y = 0;
     }
 }
 
@@ -21,21 +22,27 @@ module physics {
     
     export var isMovingBodies: boolean = false;
 
+    /** @type {Phaser.Physics.Arcade.Body[]} Set of bodies the Games physics affect */
+    export var physicsBodies: PhysicsBody[] = [];
+
     export function update(game: Phaser.Game) {
-        if (!isMovingBodies) {
+        if (!physics.isMovingBodies) {
             // Early quit - as we work on "one thing can move at a time" type of distinction
             // we can abuse it like this too, no need to perform any checks if everything's stopped ;)
             return;
         }
 
-        move(player.sprite);
+        var movingBodies: PhysicsBody[] = [];
+
+        physics.physicsBodies.forEach(body => {
+            move(body);
+
+            if (isMoving(body)) {
+                movingBodies.push(body);
+            }
+        });
         
-        // TODO move other entities too
-        
-        // TODO check has everyone stopped and then set moving bodies to false
-        if (!isMoving(player.sprite)) {
-            isMovingBodies = false;
-        }
+        physics.isMovingBodies = movingBodies.length > 0;
     }
 
 }

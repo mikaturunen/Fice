@@ -14,16 +14,16 @@ module utilities {
         return Math.floor( value / constant.TileSize.width ) * constant.TileSize.width;
     }
 
-    export function onNextPosition(velocity: Phaser.Point, currentPosition: Phaser.Point, nextPosition: Phaser.Point) {
-        if (velocity.x > 0) {
+    export function onNextPosition(body: PhysicsBody) {
+        if (body.velocity.x > 0) {
             // Moving right
-            return currentPosition.x >= nextPosition.x;
-        } else if (velocity.x < 0) {
+            return body.x >= body.next.x;
+        } else if (body.velocity.x < 0) {
             // Moving left
-            return currentPosition.x <= nextPosition.x;
-        } else if (velocity.y > 0) {
+            return body.x <= body.next.x;
+        } else if (body.velocity.y > 0) {
             // Falling down
-            return (currentPosition.y + constant.TileSize.heigth) >= nextPosition.y;
+            return (body.y + constant.TileSize.heigth) >= body.next.y;
         }
 
         return false;
