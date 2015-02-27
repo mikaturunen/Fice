@@ -13,6 +13,16 @@ function isTileBlockingMovement(pixelCoordinateX: number, pixelCoordinateY: numb
         ) ? true : false;
 }
 
+function isTileBlockingMovementVelocity(body: PhysicsBody) {
+    return world.map.getTileWorldXY(
+            body.x + body.velocity.x, 
+            body.y + body.velocity.y,
+            constant.TileSize.width, 
+            constant.TileSize.heigth, 
+            "collision"
+        ) ? true : false;
+}
+
 function isMoving(body: PhysicsBody) {
     return  body.velocity.x >=  constant.VelocityTreshold || 
             body.velocity.x <= -constant.VelocityTreshold ||
@@ -22,7 +32,10 @@ function isMoving(body: PhysicsBody) {
 
 function move(body: PhysicsBody) {
     // Stops moving left or right if there's a Tile blocking the path
-    if (isTileBlockingMovement(body.next.x, body.next.y)) {
+    if (isTileBlockingMovement(body.next.x, body.next.y) ) {
+        body.velocity.x = body.velocity.y = 0;
+    } else if (isTileBlockingMovementVelocity(body)) {
+        // TODO move object to tile position
         body.velocity.x = body.velocity.y = 0;
     }
 
@@ -30,10 +43,32 @@ function move(body: PhysicsBody) {
     body.y += body.velocity.y;
 
     // Stops the movement if the moving body has reached it's ending position
-    if (utilities.onNextPosition(body)) {
+    if (body.tiledType === "PLAYER" && utilities.onNextPosition(body)) {
+        console.log("body reached position: ", body, body.next);
         body.velocity.x = body.velocity.y = 0;
         body.x = body.next.x;
         body.y = body.next.y;
+    }
+}
+
+function transferVelocity(current: PhysicsBody, target: PhysicsBody) {
+    // Velocity transferred, we still need to calculate new next position for the body we pushed
+    target.velocity.x = current.velocity.x;    
+    physics.isMovingBodies = true;
+
+    // First find out which direction the body is moving towards to
+    var targetX: number = Math.floor(target.x / constant.TileSize.width);
+    var targetY: number = Math.floor(target.y / constant.TileSize.heigth);
+    target.next.y = target.y;
+
+    if(target.velocity.x <= -constant.VelocityTreshold) {
+        // Moving Left
+        console.log("Force left -- ", current.velocity.x, target.velocity.x);
+        target.next.x = Math.floor((targetX - 1) * constant.TileSize.width)
+    } else if (target.velocity.x >= constant.VelocityTreshold) {
+        // Moving Right
+        console.log("Force right -- ", current.velocity.x, target.velocity.x);
+        target.next.x = Math.floor((targetX + 1) * constant.TileSize.width)
     }
 }
 
@@ -64,6 +99,7 @@ function findFirstTileUnderBody(body: PhysicsBody) {
  */
 function checkCollision(current: PhysicsBody, target: PhysicsBody) {
     var transferForce: boolean = false;
+    var stopCurrent: boolean = false;
 
     if(current.tiledType === "PLAYER") {
         transferForce = true;
@@ -81,15 +117,24 @@ function checkCollision(current: PhysicsBody, target: PhysicsBody) {
     var targetX: number        = Math.floor(target.x / constant.TileSize.width);
     var targetY: number        = Math.floor(target.y / constant.TileSize.heigth);
 
-    if (current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX) {
-        console.log("Body on Left is blocking");
-        // Moving left
-        current.velocity.y = current.velocity.x = 0;
+    if(current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX) {
+        // Moving Left
+        stopCurrent = true;
     } else if (current.velocity.x >= constant.VelocityTreshold && currentRight === targetX) {
-        console.log("Body on Right is blocking");
-        // Moving right
-        current.velocity.y = current.velocity.x = 0;
+        // Moving Right
+        stopCurrent = true;
     }
+
+    if (stopCurrent) {
+        if (transferForce) {
+            transferVelocity(current, target);
+        }
+
+        current.velocity.x = current.velocity.y = 0;
+        return true;
+    }
+
+    return false;
 }
 
 function anotherBodyUnder(current: PhysicsBody, index: number) {
@@ -124,17 +169,24 @@ module physics {
             return;
         }
 
+        // When we have more than zero moving bodies, the general isMovingBodies flag is set to true
         var movingBodies: PhysicsBody[] = [];
+        // If current vs target is a collision, the target is flagged into this array so that it does not get
+        // rechecked 
+        var readyBodiesIndices: PhysicsBody[] = [];
 
         physics.physicsBodies.forEach((body: PhysicsBody, index: number) => {
             // Check collisions against other physics Bodies and see if the force is translated to another body
             physics.physicsBodies.forEach((targetBody: PhysicsBody, targetIndex: number) => {
                 // Skip self -- Body cannot collide with itself, at least not for now ;)
-                if (index === targetIndex) {
+                if (index === targetIndex || readyBodiesIndices.indexOf(body) !== -1) {
                     return;
                 }
 
-                checkCollision(body, targetBody);
+                if (checkCollision(body, targetBody)) {
+                    readyBodiesIndices.push(targetBody);
+                    console.log(body.tiledType, body.velocity.x, targetBody.tiledType, targetBody.velocity.x);
+                }
             });
 
             // Essentially moves the body and checks if it needs to stop after reaching it's "next" position / hit a 
