@@ -39,11 +39,13 @@ module player {
         game.physics.enable(sprite, Phaser.Physics.ARCADE);
 
         sprite.frame = 5;
-        sprite.name = "player";
+        sprite.name = "PLAYER";
+        sprite.body.tiledType = "PLAYER";
         // Current velocity of the sprite
         sprite.body.velocity = new Phaser.Point(0, 0);
         // Next position of the body -- used with the tile based movement.
         sprite.body.next = new Phaser.Point(0, 0);
+        sprite.body.previous = new Phaser.Point(0, 0);
 
         physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
@@ -54,11 +56,12 @@ module player {
             return;
         }
 
+        var x: number;
         if (input.left.isDown) {
             console.log("left");
             sprite.body.velocity.x = constant.Velocity * game.time.elapsed * -1;
             sprite.body.velocity.y = 0;
-            sprite.body.next.x = utilities.floorToWorldTileCoordinate(( sprite.body.x - (constant.TileSize.width / 2) ));
+            sprite.body.next.x = utilities.floorToWorldTileCoordinate(x);
             sprite.body.next.y = sprite.body.y;
         } else if (input.right.isDown) {
             console.log("right");

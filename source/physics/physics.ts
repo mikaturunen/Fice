@@ -50,11 +50,64 @@ function findFirstTileUnderBody(body: PhysicsBody) {
     var x: number = Math.floor((body.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
     var y: number = Math.floor(body.y / constant.TileSize.heigth);
 
-    console.log("x,y: ", x, y + 1);
+    console.log("x, y: ", x, y + 1);
     var tileY: number = recursiveFindFirstTileUnderBody(x, y + 1);
     body.next.x = body.x;
     body.next.y = tileY * constant.TileSize.heigth;
     console.log("Set the tile coordinates to be: ", tileY, ", ", body.next.y);
+}
+
+/** 
+ * Checks collision between two PhysicsBody objects. Current one being the one hitting target.
+ * @param {PhysicsBody} current 
+ * @param {PhysicsBody} target
+ */
+function checkCollision(current: PhysicsBody, target: PhysicsBody) {
+    var transferForce: boolean = false;
+
+    if(current.tiledType === "PLAYER") {
+        transferForce = true;
+    }
+
+    // TODO use transferForce to make ice blocks move when player pushes them
+
+    // Build positions around the current bodys tiles in tile coordinates so we can if those positions contain anything
+    var currentX: number       = Math.floor(current.x / constant.TileSize.width);
+    var currentY: number       = Math.floor(current.y / constant.TileSize.heigth);
+    var currentLeft: number    = currentX;
+    var currentRight: number   = currentX + 1; 
+    var currentTop: number     = currentY - 1;
+    var currentBottom: number  = currentY + 1; 
+    var targetX: number        = Math.floor(target.x / constant.TileSize.width);
+    var targetY: number        = Math.floor(target.y / constant.TileSize.heigth);
+
+    if (current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX) {
+        console.log("Body on Left is blocking");
+        // Moving left
+        current.velocity.y = current.velocity.x = 0;
+    } else if (current.velocity.x >= constant.VelocityTreshold && currentRight === targetX) {
+        console.log("Body on Right is blocking");
+        // Moving right
+        current.velocity.y = current.velocity.x = 0;
+    }
+}
+
+function anotherBodyUnder(current: PhysicsBody, index: number) {
+    var isBodyUnder: boolean = false;
+
+    physics.physicsBodies.forEach((target: PhysicsBody, targetIndex: number) => {
+        if (isBodyUnder || index === targetIndex) {
+            return;
+        }
+
+        var currentY: number = Math.floor(current.y / constant.TileSize.heigth);
+        var targetY: number  = Math.floor(target.y / constant.TileSize.heigth);
+        if (currentY + 1 === targetY) {
+            isBodyUnder = true;
+        }
+    });
+
+    return isBodyUnder;
 }
 
 module physics {
@@ -73,7 +126,19 @@ module physics {
 
         var movingBodies: PhysicsBody[] = [];
 
-        physics.physicsBodies.forEach(body => {
+        physics.physicsBodies.forEach((body: PhysicsBody, index: number) => {
+            // Check collisions against other physics Bodies and see if the force is translated to another body
+            physics.physicsBodies.forEach((targetBody: PhysicsBody, targetIndex: number) => {
+                // Skip self -- Body cannot collide with itself, at least not for now ;)
+                if (index === targetIndex) {
+                    return;
+                }
+
+                checkCollision(body, targetBody);
+            });
+
+            // Essentially moves the body and checks if it needs to stop after reaching it's "next" position / hit a 
+            // blocking tile.
             move(body);
 
             if (isMoving(body)) {
@@ -90,7 +155,7 @@ module physics {
                 var tile: Phaser.Tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, 
                     constant.TileSize.heigth, "collision");
 
-                if (!tile) {
+                if (!tile && !anotherBodyUnder(body, index)) {
                     findFirstTileUnderBody(body);
                     body.velocity.x = 0;
                     body.velocity.y = constant.Velocity * game.time.elapsed;
