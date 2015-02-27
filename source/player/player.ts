@@ -59,6 +59,7 @@ module player {
         var x: number;
         if (input.left.isDown) {
             console.log("left");
+            x = sprite.body.x - (constant.TileSize.width / 2) ;
             sprite.body.velocity.x = constant.Velocity * game.time.elapsed * -1;
             sprite.body.velocity.y = 0;
             sprite.body.next.x = utilities.floorToWorldTileCoordinate(x);

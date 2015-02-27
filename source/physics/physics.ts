@@ -34,7 +34,7 @@ function move(body: PhysicsBody) {
     // Stops moving left or right if there's a Tile blocking the path
     if (isTileBlockingMovement(body.next.x, body.next.y) ) {
         body.velocity.x = body.velocity.y = 0;
-    } else if (isTileBlockingMovementVelocity(body)) {
+    } else if (body.tiledType !== "PLAYER" && isTileBlockingMovementVelocity(body)) {
         // TODO move object to tile position
         body.velocity.x = body.velocity.y = 0;
     }
@@ -57,18 +57,18 @@ function transferVelocity(current: PhysicsBody, target: PhysicsBody) {
     physics.isMovingBodies = true;
 
     // First find out which direction the body is moving towards to
-    var targetX: number = Math.floor(target.x / constant.TileSize.width);
-    var targetY: number = Math.floor(target.y / constant.TileSize.heigth);
+    var targetX: number = Math.round(target.x / constant.TileSize.width);
+    var targetY: number = Math.round(target.y / constant.TileSize.heigth);
     target.next.y = target.y;
 
     if(target.velocity.x <= -constant.VelocityTreshold) {
         // Moving Left
         console.log("Force left -- ", current.velocity.x, target.velocity.x);
-        target.next.x = Math.floor((targetX - 1) * constant.TileSize.width)
+        target.next.x = Math.round((targetX - 1) * constant.TileSize.width)
     } else if (target.velocity.x >= constant.VelocityTreshold) {
         // Moving Right
         console.log("Force right -- ", current.velocity.x, target.velocity.x);
-        target.next.x = Math.floor((targetX + 1) * constant.TileSize.width)
+        target.next.x = Math.round((targetX + 1) * constant.TileSize.width)
     }
 }
 
@@ -108,14 +108,14 @@ function checkCollision(current: PhysicsBody, target: PhysicsBody) {
     // TODO use transferForce to make ice blocks move when player pushes them
 
     // Build positions around the current bodys tiles in tile coordinates so we can if those positions contain anything
-    var currentX: number       = Math.floor(current.x / constant.TileSize.width);
-    var currentY: number       = Math.floor(current.y / constant.TileSize.heigth);
+    var currentX: number       = Math.round(current.x / constant.TileSize.width);
+    var currentY: number       = Math.round(current.y / constant.TileSize.heigth);
     var currentLeft: number    = currentX;
     var currentRight: number   = currentX + 1; 
     var currentTop: number     = currentY - 1;
     var currentBottom: number  = currentY + 1; 
-    var targetX: number        = Math.floor(target.x / constant.TileSize.width);
-    var targetY: number        = Math.floor(target.y / constant.TileSize.heigth);
+    var targetX: number        = Math.round(target.x / constant.TileSize.width);
+    var targetY: number        = Math.round(target.y / constant.TileSize.heigth);
 
     if(current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX) {
         // Moving Left
@@ -145,8 +145,8 @@ function anotherBodyUnder(current: PhysicsBody, index: number) {
             return;
         }
 
-        var currentY: number = Math.floor(current.y / constant.TileSize.heigth);
-        var targetY: number  = Math.floor(target.y / constant.TileSize.heigth);
+        var currentY: number = Math.round(current.y / constant.TileSize.heigth);
+        var targetY: number  = Math.round(target.y / constant.TileSize.heigth);
         if (currentY + 1 === targetY) {
             isBodyUnder = true;
         }
