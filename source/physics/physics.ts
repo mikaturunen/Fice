@@ -51,36 +51,6 @@ function move(body: PhysicsBody) {
     }
 }
 
-function transferVelocity(current: PhysicsBody, target: PhysicsBody) {
-    // Velocity transferred, we still need to calculate new next position for the body we pushed
-    target.velocity.x = current.velocity.x;    
-    physics.isMovingBodies = true;
-
-    // First find out which direction the body is moving towards to
-    var targetX: number = Math.round(target.x / constant.TileSize.width);
-    var targetY: number = Math.round(target.y / constant.TileSize.heigth);
-    target.next.y = target.y;
-
-    if(target.velocity.x <= -constant.VelocityTreshold) {
-        // Moving Left
-        console.log("Force left -- ", current.velocity.x, target.velocity.x);
-        target.next.x = Math.round((targetX - 1) * constant.TileSize.width)
-    } else if (target.velocity.x >= constant.VelocityTreshold) {
-        // Moving Right
-        console.log("Force right -- ", current.velocity.x, target.velocity.x);
-        target.next.x = Math.round((targetX + 1) * constant.TileSize.width)
-    }
-}
-
-function recursiveFindFirstTileUnderBody(x: number, y: number): number {
-    if (world.map.getTile(x, y, "collision")) {
-        console.log("Tile found below body on Y:", y - 1);
-        return y - 1;
-    } 
-
-    return recursiveFindFirstTileUnderBody(x, y + 1);
-}
-
 function findFirstTileUnderBody(body: PhysicsBody) {
     var x: number = Math.floor((body.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
     var y: number = Math.floor(body.y / constant.TileSize.heigth);
@@ -90,6 +60,15 @@ function findFirstTileUnderBody(body: PhysicsBody) {
     body.next.x = body.x;
     body.next.y = tileY * constant.TileSize.heigth;
     console.log("Set the tile coordinates to be: ", tileY, ", ", body.next.y);
+}
+
+function recursiveFindFirstTileUnderBody(x: number, y: number): number {
+    if (world.map.getTile(x, y, "collision")) {
+        console.log("Tile found below body on Y:", y - 1);
+        return y - 1;
+    } 
+
+    return recursiveFindFirstTileUnderBody(x, y + 1);
 }
 
 /** 
@@ -117,10 +96,10 @@ function checkCollision(current: PhysicsBody, target: PhysicsBody) {
     var targetX: number        = Math.round(target.x / constant.TileSize.width);
     var targetY: number        = Math.round(target.y / constant.TileSize.heigth);
 
-    if(current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX) {
+    if(current.velocity.x <= -constant.VelocityTreshold && currentLeft === targetX && currentY === targetY) {
         // Moving Left
         stopCurrent = true;
-    } else if (current.velocity.x >= constant.VelocityTreshold && currentRight === targetX) {
+    } else if (current.velocity.x >= constant.VelocityTreshold && currentRight === targetX && currentY === targetY) {
         // Moving Right
         stopCurrent = true;
     }
@@ -135,6 +114,27 @@ function checkCollision(current: PhysicsBody, target: PhysicsBody) {
     }
 
     return false;
+}
+
+function transferVelocity(current: PhysicsBody, target: PhysicsBody) {
+    // Velocity transferred, we still need to calculate new next position for the body we pushed
+    target.velocity.x = current.velocity.x;    
+    physics.isMovingBodies = true;
+
+    // First find out which direction the body is moving towards to
+    var targetX: number = Math.round(target.x / constant.TileSize.width);
+    var targetY: number = Math.round(target.y / constant.TileSize.heigth);
+    target.next.y = target.y;
+
+    if(target.velocity.x <= -constant.VelocityTreshold) {
+        // Moving Left
+        console.log("Force left -- ", current.velocity.x, target.velocity.x);
+        target.next.x = Math.round((targetX - 1) * constant.TileSize.width)
+    } else if (target.velocity.x >= constant.VelocityTreshold) {
+        // Moving Right
+        console.log("Force right -- ", current.velocity.x, target.velocity.x);
+        target.next.x = Math.round((targetX + 1) * constant.TileSize.width)
+    }
 }
 
 function anotherBodyUnder(current: PhysicsBody, index: number) {
@@ -185,7 +185,7 @@ module physics {
 
                 if (checkCollision(body, targetBody)) {
                     readyBodiesIndices.push(targetBody);
-                    console.log(body.tiledType, body.velocity.x, targetBody.tiledType, targetBody.velocity.x);
+                    console.log(body.tiledType, body.velocity.x, targetBody.tiledType, targetBody.velocity.x, targetIndex);
                 }
             });
 
