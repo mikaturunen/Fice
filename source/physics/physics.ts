@@ -21,9 +21,15 @@ function isMoving(body: PhysicsBody) {
 }
 
 function move(body: PhysicsBody) {
+    // Stops moving left or right if there's a Tile blocking the path
+    if (isTileBlockingMovement(body.next.x, body.next.y)) {
+        body.velocity.x = body.velocity.y = 0;
+    }
+
     body.x += body.velocity.x;
     body.y += body.velocity.y;
 
+    // Stops the movement if the moving body has reached it's ending position
     if (utilities.onNextPosition(body)) {
         body.velocity.x = body.velocity.y = 0;
         body.x = body.next.x;
