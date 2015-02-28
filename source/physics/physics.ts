@@ -33,8 +33,10 @@ function isMoving() {
 function move() {
     // Stops moving left or right if there's a Tile blocking the path
     if (isTileBlockingMovement(physics.currentlyMovingBody.next.x, physics.currentlyMovingBody.next.y) ) {
+        console.log("Tile is blocking movement for currently moving body :( 1");
         physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
     } else if (physics.currentlyMovingBody.tiledType !== "PLAYER" && isTileBlockingMovementVelocity()) {
+        console.log("Tile is blocking movement for currently moving body :( 2");
         // TODO move object to tile position
         physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
     }
@@ -111,9 +113,14 @@ function checkCollision(target: PhysicsBody) {
     if (stopCurrent) {
         if (transferForce && physics.currentlyMovingBody.hasJustStarted) {
             transferVelocity(target);
+            // Target has now become the only moving object in the game
+            physics.stopCurrentAndSwap(target);
+            console.log("Currently moving physics body swapped and previous stopped.");
+        } else {
+            physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+            console.log("Currently moving physics body stopped.");
         }
 
-        physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
         return true;
     }
 
@@ -138,9 +145,6 @@ function transferVelocity(target: PhysicsBody) {
         console.log("Force right -- ", physics.currentlyMovingBody.velocity.x, target.velocity.x);
         target.next.x = Math.round((targetX + 1) * constant.TileSize.width)
     }
-
-    // Target has now become the only moving object in the game
-    physics.currentlyMovingBody = target;
 }
 
 function anotherBodyUnder() {
@@ -172,6 +176,18 @@ module physics {
     /** @type {Phaser.Physics.Arcade.Body[]} Set of bodies the Games physics affect */
     export var physicsBodies: PhysicsBody[] = [];
 
+    export function stopCurrentAndSwap(newCurrentlyMovingBody: PhysicsBody) {
+        // Stop current body first
+        physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+        
+        // TODO do we need to set it to something or is stopping it enough?
+        // physics.currentlyMovingBody.x = 0;
+        //physics.currentlyMovingBody.y = 0;
+
+        // Set the new body to be the new currently moving body <3
+        physics.currentlyMovingBody = newCurrentlyMovingBody;
+    }
+
     export function update(game: Phaser.Game) {
         if (!physics.currentlyMovingBody) {
             return;
@@ -196,8 +212,13 @@ module physics {
             }
 
             if (checkCollision(targetBody)) {
-                console.log(physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity.x, 
-                    targetBody.tiledType, targetBody.velocity.x);
+                console.log(
+                        "Collision between bodies:", 
+                        physics.currentlyMovingBody.tiledType, 
+                        physics.currentlyMovingBody.velocity.x, 
+                        targetBody.tiledType, 
+                        targetBody.velocity.x
+                    );
             }
         });
 
