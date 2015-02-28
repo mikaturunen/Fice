@@ -54,7 +54,7 @@ module player {
     }
 
     export function checkInputs(game: Phaser.Game) {
-        if (physics.isMovingBodies) {
+        if (physics.currentlyMovingBody) {
             return;
         }
 

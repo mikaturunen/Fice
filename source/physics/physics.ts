@@ -195,7 +195,7 @@ module physics {
                 return;
             }
 
-            if (checkCollision(physics.currentlyMovingBody, targetBody)) {
+            if (checkCollision(targetBody)) {
                 console.log(physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity.x, 
                     targetBody.tiledType, targetBody.velocity.x);
             }
@@ -207,11 +207,9 @@ module physics {
 
         // Essentially moves the body and checks if it needs to stop after reaching it's "next" position / hit a 
         // blocking tile.
-        move(physics.currentlyMovingBody);
+        move();
 
-        if (isMoving(physics.currentlyMovingBody)) {
-            // Body is moving, we'll store it so we can notify the module that we still do have moving bodies
-        } else {
+        if (!isMoving()) {
             // Body is not moving, apply gravity to it to see if it starts falling as it has reached the 
             // potentially new tile.
             
@@ -224,8 +222,8 @@ module physics {
 
             if (!tile && !anotherBodyUnder()) {
                 findFirstTileUnderBody();
-                body.velocity.x = 0;
-                body.velocity.y = constant.Velocity * game.time.elapsed;
+                physics.currentlyMovingBody.velocity.x = 0;
+                physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
             } else {
                 // it has come to an stop, no moving bodies present
                 physics.currentlyMovingBody = undefined;
