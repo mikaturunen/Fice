@@ -57,7 +57,7 @@ function findFirstTileUnderBody() {
 
     console.log("x, y: ", x, y + 1);
     var tileY: number = recursiveFindFirstTileUnderBody(x, y + 1);
-    physics.currentlyMovingBody.next.x = body.x;
+    physics.currentlyMovingBody.next.x = physics.currentlyMovingBody.x;
     physics.currentlyMovingBody.next.y = tileY * constant.TileSize.heigth;
     console.log("Set the tile coordinates to be: ", tileY, ", ", physics.currentlyMovingBody.next.y);
 }
@@ -179,7 +179,14 @@ module physics {
 
         // Sort the bodies into an order where the first is the one with the highest Y, so we start applying physics
         // from bottom to top from the screens perspective and the "one object at a time"-login works
-        physics.physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { return l.y <= r.y; });
+        physics.physicsBodies = physics.physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { 
+            if (l.y < r.y) {
+                return 1;
+            } else if (l.y > r.y) {
+                return -1;
+            }
+            return 0;
+        });
 
         // Check collisions against other physics Bodies and see if the force is translated to another body
         physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
