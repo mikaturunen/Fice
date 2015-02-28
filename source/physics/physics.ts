@@ -191,7 +191,7 @@ module physics {
         // Check collisions against other physics Bodies and see if the force is translated to another body
         physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
             // Skip self -- Body cannot collide with itself, at least not for now ;)
-            if (index === targetIndex || physics.currentlyMovingBody === targetBody) {
+            if (physics.currentlyMovingBody === targetBody) {
                 return;
             }
 
