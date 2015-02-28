@@ -53,15 +53,17 @@ function move() {
     }
 }
 
-function findFirstTileUnderBody() {
-    var x: number = Math.floor((physics.currentlyMovingBody.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
-    var y: number = Math.floor(physics.currentlyMovingBody.y / constant.TileSize.heigth);
+function findFirstTileUnderBody(body?: PhysicsBody) {
+    var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
+
+    var x: number = Math.floor((current.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
+    var y: number = Math.floor(current.y / constant.TileSize.heigth);
 
     console.log("x, y: ", x, y + 1);
     var tileY: number = recursiveFindFirstTileUnderBody(x, y + 1);
-    physics.currentlyMovingBody.next.x = physics.currentlyMovingBody.x;
-    physics.currentlyMovingBody.next.y = tileY * constant.TileSize.heigth;
-    console.log("Set the tile coordinates to be: ", tileY, ", ", physics.currentlyMovingBody.next.y);
+    current.next.x = current.x;
+    current.next.y = tileY * constant.TileSize.heigth;
+    console.log("Set the tile coordinates to be: ", tileY, ", ", current.next.y);
 }
 
 function recursiveFindFirstTileUnderBody(x: number, y: number): number {
@@ -147,16 +149,18 @@ function transferVelocity(target: PhysicsBody) {
     }
 }
 
-function anotherBodyUnder() {
+function anotherBodyUnder(body?: PhysicsBody) {
     var isBodyUnder: boolean = false;
 
+    var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
+
     physics.physicsBodies.forEach((target: PhysicsBody) => {
-        if (isBodyUnder || physics.currentlyMovingBody === target) {
+        if (isBodyUnder || current === target) {
             return;
         }
 
-        var currentX: number = Math.round(physics.currentlyMovingBody.x / constant.TileSize.width);
-        var currentY: number = Math.round(physics.currentlyMovingBody.y / constant.TileSize.heigth);
+        var currentX: number = Math.round(current.x / constant.TileSize.width);
+        var currentY: number = Math.round(current.y / constant.TileSize.heigth);
         var targetY: number  = Math.round(target.y / constant.TileSize.heigth);
         var targetX: number  = Math.round(target.x / constant.TileSize.width);
 
@@ -165,9 +169,36 @@ function anotherBodyUnder() {
         }
     });
 
-    physics.currentlyMovingBody.____isOnTopOfBody = isBodyUnder;
+    current.____isOnTopOfBody = isBodyUnder;
     return isBodyUnder;
 }
+
+function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
+    var newMovingBody: PhysicsBody;
+
+    physics.physicsBodies.forEach(potentiallyFallingBody => {
+        if(newMovingBody) {
+            return;
+        }
+
+        // Calculate a position from current sprites center to the center of one tile below and then floor the
+        // value.
+        var x: number = potentiallyFallingBody.x + (constant.TileSize.width / 2);
+        var y: number = potentiallyFallingBody.y + (constant.TileSize.heigth * 1.5);
+        var tile: Phaser.Tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, 
+            constant.TileSize.heigth, "collision");
+
+        if (!tile && !anotherBodyUnder(potentiallyFallingBody)) {
+            // Falling
+            findFirstTileUnderBody(potentiallyFallingBody);
+            newMovingBody = potentiallyFallingBody;
+            newMovingBody.velocity.x = 0;
+            newMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+        }
+    });
+    
+    return newMovingBody;
+};
 
 module physics {
     
@@ -189,10 +220,6 @@ module physics {
     }
 
     export function update(game: Phaser.Game) {
-        if (!physics.currentlyMovingBody) {
-            return;
-        }
-
         // Sort the bodies into an order where the first is the one with the highest Y, so we start applying physics
         // from bottom to top from the screens perspective and the "one object at a time"-login works
         physics.physicsBodies = physics.physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { 
@@ -206,8 +233,9 @@ module physics {
 
         // Check collisions against other physics Bodies and see if the force is translated to another body
         physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
+            console.log("targetbody y", targetBody.y);
             // Skip self -- Body cannot collide with itself, at least not for now ;)
-            if (physics.currentlyMovingBody === targetBody) {
+            if (!physics.currentlyMovingBody || physics.currentlyMovingBody === targetBody) {
                 return;
             }
 
@@ -221,6 +249,8 @@ module physics {
                     );
             }
         });
+
+        physics.currentlyMovingBody = physics.currentlyMovingBody || findNewCurrentlyMovingBodyThroughGravity(game);
 
         if (!physics.currentlyMovingBody) {
             return;
