@@ -209,6 +209,10 @@ module physics {
         // blocking tile.
         move();
 
+        // The body has gone through at least ONE physics cycle, we no longer consider it to just have started
+        // moving 
+        physics.currentlyMovingBody.hasJustStarted = false;
+
         if (!isMoving()) {
             // Body is not moving, apply gravity to it to see if it starts falling as it has reached the 
             // potentially new tile.
@@ -221,18 +225,17 @@ module physics {
                 constant.TileSize.heigth, "collision");
 
             if (!tile && !anotherBodyUnder()) {
+                // Falling
                 findFirstTileUnderBody();
                 physics.currentlyMovingBody.velocity.x = 0;
                 physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
             } else {
-                // it has come to an stop, no moving bodies present
+                // Gravity does not apply and the body is not moving
+                physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+                physics.currentlyMovingBody.hasJustStarted = false;
                 physics.currentlyMovingBody = undefined;
             }
         }
-
-        // The body has gone through at least ONE physics cycle, we no longer consider it to just have started
-        // moving 
-        physics.currentlyMovingBody.hasJustStarted = false;
     }
 
 }
