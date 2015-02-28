@@ -31,16 +31,43 @@ function isMoving() {
 }
 
 function move() {
-    // Stops moving left or right if there's a Tile blocking the path
+    // First IF only works for entities using .next -- player for now
     if (isTileBlockingMovement(physics.currentlyMovingBody.next.x, physics.currentlyMovingBody.next.y) ) {
+        // Stops moving left or right if there's a Tile blocking the path
         console.log("Tile is blocking movement for currently moving body :( 1");
         physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
-    } else if (physics.currentlyMovingBody.tiledType !== "PLAYER" && isTileBlockingMovementVelocity()) {
-        console.log("Tile is blocking movement for currently moving body :( 2");
-        // TODO move object to tile position
-        physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
-    }
+    } else if (physics.currentlyMovingBody.tiledType !== "PLAYER") {
+        var blockingTile: Phaser.Tile;
 
+        // For all physics bodies without .next in place
+        if (physics.currentlyMovingBody.velocity.y >= constant.VelocityTreshold && 
+            (blockingTile = getBlockingTile())) {
+
+            // Stops falling Down if there is a Tile blocking the path
+            console.log("Blocked physics body from falling down.");
+            blockingTile = getBlockingTile();
+            physics.currentlyMovingBody.y = (blockingTile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
+            physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+            return;
+        } else if (physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold && 
+            (blockingTile = getBlockingTile())) {
+
+            // Stops moving Left if there is a Tile blocking the path -- for all other without .next
+            console.log("Blocked physics body from moving left.");
+            physics.currentlyMovingBody.x = (blockingTile.x * constant.TileSize.width) + constant.TileSize.heigth;
+            physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+            return;
+        } else if (physics.currentlyMovingBody.velocity.x >= constant.VelocityTreshold && 
+            (blockingTile = getBlockingTile())) {
+
+            // Stops moving Right if there is a Tile blocking the path -- for all other without .next
+            console.log("Blocked physics body from moving right.");
+            physics.currentlyMovingBody.x = (blockingTile.x * constant.TileSize.width) - constant.TileSize.heigth;
+            physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+            return;
+        }
+    } 
+ 
     physics.currentlyMovingBody.x += physics.currentlyMovingBody.velocity.x;
     physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
 
@@ -51,6 +78,39 @@ function move() {
         physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
         physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
     }
+}
+
+function getBlockingTile() {
+    if (physics.currentlyMovingBody.velocity.y >= constant.VelocityTreshold) {
+        // FALLING
+        return world.map.getTileWorldXY(
+            physics.currentlyMovingBody.x + physics.currentlyMovingBody.velocity.x, 
+            (physics.currentlyMovingBody.y + constant.TileSize.heigth) + physics.currentlyMovingBody.velocity.y,
+            constant.TileSize.width, 
+            constant.TileSize.heigth, 
+            "collision"
+        );
+    } else if (physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold) {
+        // LEFT
+        return world.map.getTileWorldXY(
+            physics.currentlyMovingBody.x + physics.currentlyMovingBody.velocity.x, 
+            physics.currentlyMovingBody.y + physics.currentlyMovingBody.velocity.y,
+            constant.TileSize.width, 
+            constant.TileSize.heigth, 
+            "collision"
+        );
+    } else if (physics.currentlyMovingBody.velocity.x >= constant.VelocityTreshold) {
+        // RIGHT
+        return world.map.getTileWorldXY(
+            (physics.currentlyMovingBody.x + constant.TileSize.width) + physics.currentlyMovingBody.velocity.x, 
+            physics.currentlyMovingBody.y + physics.currentlyMovingBody.velocity.y,
+            constant.TileSize.width, 
+            constant.TileSize.heigth, 
+            "collision"
+        );
+    } 
+
+    return undefined;
 }
 
 function findFirstTileUnderBody(body?: PhysicsBody) {
@@ -233,7 +293,6 @@ module physics {
 
         // Check collisions against other physics Bodies and see if the force is translated to another body
         physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
-            console.log("targetbody y", targetBody.y);
             // Skip self -- Body cannot collide with itself, at least not for now ;)
             if (!physics.currentlyMovingBody || physics.currentlyMovingBody === targetBody) {
                 return;
@@ -282,6 +341,7 @@ module physics {
                 physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
             } else {
                 // Gravity does not apply and the body is not moving
+                // Stop velocity and mark it as not a moving body
                 physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
                 physics.currentlyMovingBody.hasJustStarted = false;
                 physics.currentlyMovingBody = undefined;
