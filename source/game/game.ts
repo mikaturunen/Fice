@@ -74,10 +74,12 @@ function updateGame() {
  */
 function renderGame() {
     return () => {
-        game.debug.text("Moving bodies  : " + physics.isMovingBodies, 10, 10);
+        game.debug.text("Moving bodies  : " + JSON.stringify(physics.currentlyMovingBody !== undefined), 10, 10);
         game.debug.text("Player movement: " + player.sprite.body.velocity.x, 10, 25);
         game.debug.text("Player y       : " + Math.round(player.sprite.body.y) + ",  " + Math.round(player.sprite.body.y/32), 10, 40);
         game.debug.text("Player x       : " + Math.round(player.sprite.body.x) + ",  " + Math.round(player.sprite.body.x/32), 10, 55);
+        // 2nd column
+        game.debug.text("__bodyUnder: " + player.sprite.body.____isOnTopOfBody, 300, 10);
     };
 }
 

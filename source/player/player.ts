@@ -46,6 +46,8 @@ module player {
         // Next position of the body -- used with the tile based movement.
         sprite.body.next = new Phaser.Point(0, 0);
         sprite.body.previous = new Phaser.Point(0, 0);
+        sprite.body.hasJustStarted = false;
+        sprite.body.____isOnTopOfBody = false;
 
         physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
@@ -78,7 +80,8 @@ module player {
         if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
             sprite.body.velocity.x <= -constant.VelocityTreshold) {
 
-            physics.isMovingBodies = true;
+            physics.currentlyMovingBody = player.sprite.body;
+            sprite.body.hasJustStarted = true;
         } 
     };
 
