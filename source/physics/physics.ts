@@ -55,6 +55,7 @@ function isMoving() {
 function move() {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
+        console.log("overlap, stop");
         physics.stopCurrent();
     }
  
@@ -62,7 +63,12 @@ function move() {
     physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
 
     // Stops the movement if the moving body has reached it's ending position
-    if (physics.currentlyMovingBody.tiledType === "PLAYER" && utilities.onNextPosition(physics.currentlyMovingBody)) {
+    if (!utilities.isDirectionDown(physics.currentlyMovingBody) && 
+        physics.currentlyMovingBody.tiledType === "PLAYER" && 
+        utilities.onNextPosition(physics.currentlyMovingBody))
+        {
+
+        console.log("Next position reached - stop");
         physics.stopCurrent();
         physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
         physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
@@ -112,44 +118,38 @@ function checkCollision(targetBody: PhysicsBody) {
 
     // Physics bodies
     if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
-        console.log("Bodies overlap: ", current, target);
-        
+
         if (transferForce) {
             transferVelocity(targetBody);
             physics.stopCurrentAndSwap(targetBody);
         } else {
             physics.stopCurrent();
+            console.log("Stop current!");
         }
 
         return true;
-    } else {
-        console.log("No overlap with bodies for ", physics.currentlyMovingBody.tiledType);
     }
-
+    
     return false;
 }
 
 function areBodiesOverlapping(current: CollisionBody, target: CollisionBody) {
     if (current.coordinates.y > target.coordinates.y + target.heigth) {
-        console.log("under");
         // current is UNDER the target box
         return false; 
     } 
 
     if (current.coordinates.y + current.heigth < target.coordinates.y) {
-        console.log("above");
         return false;
         // Current is ABOVE the target box
     }
 
     if (current.coordinates.x > target.coordinates.x + target.heigth) {
-        console.log("right side");
         return false;
         // Current is on the RIGHT side of the target box
     }
 
     if (current.coordinates.x + current.width < target.coordinates.x) {
-        console.log("left side");
         return false; 
         // Currenty is on the LEFT side of the target box
     }
@@ -183,7 +183,6 @@ function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBod
         toResolveCurrent.tile.x === target.tile.x &&
         toResolve.y + toResolveCurrent.heigth >= target.coordinates.y) {
         
-        console.log("Falling, need to pull up: ", toResolveCurrent, target);
         // is falling, need to pull up
         toResolve.y = target.coordinates.y - target.heigth;
         return true;
@@ -285,23 +284,16 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
     return newMovingBody;
 };
 
-function noTileDirectlyUnder(target: PhysicsBody) {
+function canFallTile(target: PhysicsBody) {
     var body = buildCollisionBody(target);
-    // go down one 
-    var tile = world.getTilePixelXY(body.tile.x, body.tile.y + 1);
-
-    if (tile) {
-        // There is a tile present; we are standing on top of a tile then
-        return false;
-    }
-
-    // No tile under the Body, are we falling?
-    return true;
+    var tile = world.getTilePixelXY(body.coordinates.x, body.coordinates.y + constant.TileSize.heigth);
+    var canFall: boolean = tile ? false : true;
+    return  canFall;
 }
 
-function noBodyDirectlyUnder(target: PhysicsBody) {
+function canFallBody(target: PhysicsBody) {
     var body = buildCollisionBody(target);
-    var noBodyUnder: boolean = true;
+    var canFall: boolean = true;
 
     // go down one 
     body.tile.y += 1;
@@ -310,11 +302,11 @@ function noBodyDirectlyUnder(target: PhysicsBody) {
         var targetBody: CollisionBody = buildCollisionBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
             // We have a body under, not allowed to fall
-            noBodyUnder = false;
+            canFall = false;
         } 
     });
 
-    return noBodyUnder;
+    return canFall;
 }
 
 function pointInside(x: number, y: number, target: PhysicsBody) {
@@ -367,9 +359,7 @@ module physics {
             // Skip self -- Body cannot collide with itself, at least not for now ;)
             if (!physics.currentlyMovingBody || physics.currentlyMovingBody === targetBody) {
                 return;
-            } else if (
-                    !areBodiesOverlapping(buildCollisionBody(physics.currentlyMovingBody), buildCollisionBody(targetBody))
-                ) {
+            } else if (!areBodiesOverlapping(buildCollisionBody(physics.currentlyMovingBody), buildCollisionBody(targetBody))) {
                 return;
             }
 
@@ -386,10 +376,6 @@ module physics {
             }
         });
 
-        if (physics.currentlyMovingBody && !isMoving()) {
-            physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
-        }
-
         if (physics.currentlyMovingBody) {
             move();
             
@@ -401,10 +387,13 @@ module physics {
         // When no body is in motion, try finding a body we can put into motion through gravity
         if (!physics.currentlyMovingBody) {
             physics.physicsBodies.forEach(target => {
-                if (!physics.currentlyMovingBody && noTileDirectlyUnder(target) && noBodyDirectlyUnder(target)) {
+                if (!physics.currentlyMovingBody && canFallTile(target) && canFallBody(target)) {
                     // The target body has nothing under it, we can make it fall - no body or tile blocking 
                     physics.currentlyMovingBody = target;
                     physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                    physics.currentlyMovingBody.velocity.x = 0;
+
+                    console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
                 }
             });
         }
