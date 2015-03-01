@@ -3,16 +3,6 @@ import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
 
-function isTileBlockingMovement(pixelCoordinateX: number, pixelCoordinateY: number) {
-    return world.map.getTileWorldXY(
-            pixelCoordinateX, 
-            pixelCoordinateY, 
-            constant.TileSize.width, 
-            constant.TileSize.heigth, 
-            "collision"
-        ) ? true : false;
-}
-
 /** 
  * Finds Tile in the velocity direction and fixes position to it if overlapping
  */
@@ -66,7 +56,6 @@ function move() {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
         physics.stopCurrent();
-        return;
     }
  
     physics.currentlyMovingBody.x += physics.currentlyMovingBody.velocity.x;
@@ -77,12 +66,6 @@ function move() {
         physics.stopCurrent();
         physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
         physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
-    }
-}
-
-function isFallingOverlap(collisionBody: CollisionBody) {
-    if ( (physics.currentlyMovingBody.y + collisionBody.heigth) >= collisionBody.coordinates.y) {
-        return true;
     }
 }
 
@@ -250,13 +233,6 @@ function buildCollisionBody(body: PhysicsBody) {
     };
 }
 
-function getTileBelow() {
-    var current: PhysicsBody = physics.currentlyMovingBody;
-    var x: number = Math.floor((current.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
-    var y: number = Math.floor(current.y / constant.TileSize.heigth);
-    return recursiveFindFirstTileUnderBody(x, y + 1, 0);
-}
-
 function getBodyBelow(body?: PhysicsBody) {
     var isBodyUnder: PhysicsBody;
 
@@ -300,6 +276,7 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
             // Falling
             findFirstTileUnderBody(potentiallyFallingBody);
             newMovingBody = potentiallyFallingBody;
+            console.log("Gravity pulls new body: " + newMovingBody._uniqueId);
             newMovingBody.velocity.x = 0;
             newMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
         }
@@ -308,8 +285,36 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
     return newMovingBody;
 };
 
-function applyGravity() {
+function noTileDirectlyUnder(target: PhysicsBody) {
+    var body = buildCollisionBody(target);
+    // go down one 
+    var tile = world.getTilePixelXY(body.tile.x, body.tile.y + 1);
 
+    if (tile) {
+        // There is a tile present; we are standing on top of a tile then
+        return false;
+    }
+
+    // No tile under the Body, are we falling?
+    return true;
+}
+
+function noBodyDirectlyUnder(target: PhysicsBody) {
+    var body = buildCollisionBody(target);
+    var noBodyUnder: boolean = true;
+
+    // go down one 
+    body.tile.y += 1;
+
+    physics.physicsBodies.forEach(target => {
+        var targetBody: CollisionBody = buildCollisionBody(target);
+        if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
+            // We have a body under, not allowed to fall
+            noBodyUnder = false;
+        } 
+    });
+
+    return noBodyUnder;
 }
 
 function pointInside(x: number, y: number, target: PhysicsBody) {
@@ -352,17 +357,10 @@ module physics {
     }
 
     export function update(game: Phaser.Game) {
-
         // Sort the bodies into an order where the first is the one with the highest Y, so we start applying physics
-        // from bottom to top from the screens perspective and the "one object at a time"-login works
-        physics.physicsBodies = physics.physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { 
-            if (l.y < r.y) {
-                return 1;
-            } else if (l.y > r.y) {
-                return -1;
-            }
-            return 0;
-        });
+        // from bottom to top from the screens perspective and the "one object at a time"-login works and that's how
+        // the items fall in the original so :o
+        physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
 
         // Check collisions against other physics Bodies and see if the force is translated to another body
         physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
@@ -392,26 +390,23 @@ module physics {
             physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
         }
 
-        physics.currentlyMovingBody = physics.currentlyMovingBody || findNewCurrentlyMovingBodyThroughGravity(game);
-
-        if (!physics.currentlyMovingBody) {
-            return;
+        if (physics.currentlyMovingBody) {
+            move();
+            
+            if (!isMoving()) {
+                physics.currentlyMovingBody = undefined;
+            }
         }
 
-        // Essentially moves the body and checks if it needs to stop after reaching it's "next" position / hit a 
-        // blocking tile.
-        move();
-
+        // When no body is in motion, try finding a body we can put into motion through gravity
         if (!physics.currentlyMovingBody) {
-            return;
-        }
-
-        // The body has gone through at least ONE physics cycle, we no longer consider it to just have started
-        // moving 
-        physics.currentlyMovingBody.hasJustStarted = false;
-
-        if (!isMoving()) {
-            physics.currentlyMovingBody = undefined;
+            physics.physicsBodies.forEach(target => {
+                if (!physics.currentlyMovingBody && noTileDirectlyUnder(target) && noBodyDirectlyUnder(target)) {
+                    // The target body has nothing under it, we can make it fall - no body or tile blocking 
+                    physics.currentlyMovingBody = target;
+                    physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                }
+            });
         }
     }
 

@@ -1,6 +1,6 @@
 "use strict";
 
-// Only ONE thing at a time can move - player, tile or something else.var somethingMoving: boolean = false;
+import constant = require("../utilities/constants");
 
 /**
  * @module tiles
@@ -26,6 +26,16 @@ module tiles {
 
         tiles.map.setCollisionBetween(1, 2000, true, "collision");
     };
+
+    export function getTilePixelXY(x: number, y: number) {
+        return map.getTileWorldXY(
+            x,
+            y,
+            constant.TileSize.width,
+            constant.TileSize.heigth,
+            "collision"
+        );
+    }
 }
 
 export = tiles;

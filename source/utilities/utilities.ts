@@ -16,6 +16,17 @@ module utilities {
     // TODO create a proper loader for the lvl jsons. For now this'll do
     export var lvlJson = require("../../assets/levels/lvl.json");
 
+    export function sortIntoAscendingYOrder(physicsBodies: PhysicsBody[]) {
+        return physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { 
+            if (l.y < r.y) {
+                return 1;
+            } else if (l.y > r.y) {
+                return -1;
+            }
+            return 0;
+        });
+    }
+
     export function floorToWorldTileCoordinate(value: number) {
         return Math.floor( value / constant.TileSize.width ) * constant.TileSize.width;
     }
