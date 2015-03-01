@@ -103,14 +103,8 @@ function recursiveFindFirstTileUnderBody(x: number, y: number, recursion: number
  * @param {PhysicsBody} target
  */
 function checkCollision(targetBody: PhysicsBody) {
-    if (targetBody._uniqueId === physics.currentlyMovingBody._uniqueId) {
+    if (!physics.currentlyMovingBody || targetBody._uniqueId === physics.currentlyMovingBody._uniqueId) {
         return false;
-    }
-
-    var transferForce: boolean = false;
-
-    if(physics.currentlyMovingBody.tiledType === "PLAYER") {
-        transferForce = true;
     }
 
     var current: CollisionBody = buildCollisionBody(physics.currentlyMovingBody);
@@ -118,18 +112,9 @@ function checkCollision(targetBody: PhysicsBody) {
 
     // Physics bodies
     if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
-
-        if (transferForce) {
-            transferVelocity(targetBody);
-            physics.stopCurrentAndSwap(targetBody);
-        } else {
-            physics.stopCurrent();
-            console.log("Stop current!");
-        }
-
         return true;
     }
-    
+
     return false;
 }
 
@@ -190,26 +175,6 @@ function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBod
 
     // No resolving required
     return false;
-}
-
-function transferVelocity(target: PhysicsBody) {
-    // Velocity transferred, we still need to calculate new next position for the body we pushed
-    target.velocity.x = physics.currentlyMovingBody.velocity.x;    
-    
-    // First find out which direction the body is moving towards to
-    var targetX: number = Math.round(target.x / constant.TileSize.width);
-    var targetY: number = Math.round(target.y / constant.TileSize.heigth);
-    target.next.y = target.y;
-
-    if(target.velocity.x <= -constant.VelocityTreshold) {
-        // Moving Left
-        target.next.x = Math.round((targetX - 1) * constant.TileSize.width)
-        physics.currentlyMovingBody.x = target.x + constant.TileSize.width;
-    } else if (target.velocity.x >= constant.VelocityTreshold) {
-        // Moving Right
-        target.next.x = Math.round((targetX + 1) * constant.TileSize.width)
-        physics.currentlyMovingBody.x = target.x - constant.TileSize.width;
-    }
 }
 
 function buildCollisionBody(body: PhysicsBody) {
@@ -341,11 +306,9 @@ module physics {
 
     export function stopCurrentAndSwap(newCurrentlyMovingBody: PhysicsBody) {
         // Stop current body first
-        var previousMovingBody = physics.currentlyMovingBody;
         physics.stopCurrent();
         // Set the new body to be the new currently moving body <3
         physics.currentlyMovingBody = newCurrentlyMovingBody;
-        return previousMovingBody;
     }
 
     export function update(game: Phaser.Game) {
@@ -353,28 +316,6 @@ module physics {
         // from bottom to top from the screens perspective and the "one object at a time"-login works and that's how
         // the items fall in the original so :o
         physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
-
-        // Check collisions against other physics Bodies and see if the force is translated to another body
-        physics.physicsBodies.forEach((targetBody: PhysicsBody) => {
-            // Skip self -- Body cannot collide with itself, at least not for now ;)
-            if (!physics.currentlyMovingBody || physics.currentlyMovingBody === targetBody) {
-                return;
-            } else if (!areBodiesOverlapping(buildCollisionBody(physics.currentlyMovingBody), buildCollisionBody(targetBody))) {
-                return;
-            }
-
-            if (checkCollision(targetBody)) {
-                console.log(
-                        "Collision between bodies:", 
-                        physics.currentlyMovingBody.tiledType, 
-                        physics.currentlyMovingBody._uniqueId, 
-                        targetBody._uniqueId, 
-                        targetBody.velocity.x
-                    );
-                console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ", ", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
-                console.log("Target :", Math.round(targetBody.x / 32), ", ", Math.round(targetBody.y / 32), targetBody._uniqueId);
-            }
-        });
 
         if (physics.currentlyMovingBody) {
             move();
@@ -396,6 +337,29 @@ module physics {
                     console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
                 }
             });
+        }
+
+        for (var index: number = 0; index < physics.physicsBodies.length; index++) {
+            var targetBody: PhysicsBody = physics.physicsBodies[index];
+
+            if (checkCollision(targetBody)) {
+                console.log(
+                        "Collision between bodies:", 
+                        physics.currentlyMovingBody.tiledType, 
+                        physics.currentlyMovingBody._uniqueId, 
+                        targetBody._uniqueId, 
+                        targetBody.velocity.x
+                    );
+                console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ", ", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
+                console.log("Target :", Math.round(targetBody.x / 32), ", ", Math.round(targetBody.y / 32), targetBody._uniqueId);
+
+                if (physics.currentlyMovingBody.tiledType === "PLAYER") {
+                    targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
+                }
+
+                stopCurrentAndSwap(targetBody);
+                return;
+            }
         }
     }
 
