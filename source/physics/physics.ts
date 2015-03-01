@@ -103,7 +103,9 @@ function recursiveFindFirstTileUnderBody(x: number, y: number, recursion: number
  * @param {PhysicsBody} target
  */
 function checkCollision(targetBody: PhysicsBody) {
-    if (!physics.currentlyMovingBody || targetBody._uniqueId === physics.currentlyMovingBody._uniqueId) {
+    if (!physics.currentlyMovingBody || 
+        targetBody._uniqueId === physics.currentlyMovingBody._uniqueId) {
+
         return false;
     }
 
@@ -154,13 +156,15 @@ function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBod
     // Pull the bodies apart based on velocity
     if (utilities.isDirectionLeft(toResolve) &&
         toResolveCurrent.tile.y === target.tile.y) {
-        console.log("TTT ", toResolveCurrent, target);
+
+        console.log("LLL X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
         // is moving from right to left, need to pull to right 
         toResolve.x = target.coordinates.x + target.width;
         return true;
     } else if(utilities.isDirectionRight(toResolve) &&
         toResolveCurrent.tile.y === target.tile.y) {
 
+        console.log("RRR X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
         // is moving from left to right, need to pull to right
         toResolve.x = target.coordinates.x - target.width;
         return true;
@@ -168,6 +172,7 @@ function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBod
         toResolveCurrent.tile.x === target.tile.x &&
         toResolve.y + toResolveCurrent.heigth >= target.coordinates.y) {
         
+        console.log("DDD X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
         // is falling, need to pull up
         toResolve.y = target.coordinates.y - target.heigth;
         return true;
@@ -289,6 +294,10 @@ module physics {
     export var physicsBodies: PhysicsBody[] = [];
 
     export function stopCurrent() {
+        if (!physics.currentlyMovingBody) {
+            return;
+        }
+
         physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
     }
 
@@ -330,8 +339,9 @@ module physics {
             physics.physicsBodies.forEach(target => {
                 if (!physics.currentlyMovingBody && canFallTile(target) && canFallBody(target)) {
                     // The target body has nothing under it, we can make it fall - no body or tile blocking 
-                    physics.currentlyMovingBody = target;
+                    physics.stopCurrentAndSwap(target);
                     physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                    physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
                     physics.currentlyMovingBody.velocity.x = 0;
 
                     console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
@@ -343,21 +353,16 @@ module physics {
             var targetBody: PhysicsBody = physics.physicsBodies[index];
 
             if (checkCollision(targetBody)) {
-                console.log(
-                        "Collision between bodies:", 
-                        physics.currentlyMovingBody.tiledType, 
-                        physics.currentlyMovingBody._uniqueId, 
-                        targetBody._uniqueId, 
-                        targetBody.velocity.x
-                    );
-                console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ", ", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
-                console.log("Target :", Math.round(targetBody.x / 32), ", ", Math.round(targetBody.y / 32), targetBody._uniqueId);
+                console.log("Collision between body id's:", physics.currentlyMovingBody._uniqueId, targetBody._uniqueId);
+
+                console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ",", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
+                console.log("Target :", Math.round(targetBody.x / 32), ",", Math.round(targetBody.y / 32), targetBody._uniqueId);
 
                 if (physics.currentlyMovingBody.tiledType === "PLAYER") {
                     targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
                 }
 
-                stopCurrentAndSwap(targetBody);
+                physics.stopCurrentAndSwap(targetBody);
                 return;
             }
         }

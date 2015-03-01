@@ -76,7 +76,7 @@ var renderBodyInfo = () => {
         var cx = body.x;
         var cy = body.y;
         var ttype = body.tiledType;
-        game.debug.text("ENTITY: " +x+ ", " +y+ " -- " +body.velocity.x+ ", " +body.velocity.y+ " -- " +ttype, 10, 13*32);
+        game.debug.text("ENTITY: " +x+ ", " +y+ " -- " +body.velocity.x+ ", " +body.velocity.y+ " -- " +ttype+ ", id: "+body._uniqueId, 10, 13*32);
     }   
 };
 
