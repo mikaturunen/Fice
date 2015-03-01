@@ -13,6 +13,48 @@ function isTileBlockingMovement(pixelCoordinateX: number, pixelCoordinateY: numb
         ) ? true : false;
 }
 
+/** 
+ * Finds Tile in the velocity direction and fixes position to it if overlapping
+ */
+function getAndResolveOverlappingTile() {
+    if (utilities.isDirectionLeft(physics.currentlyMovingBody)) {
+        return (() => {
+            var x = Math.round(physics.currentlyMovingBody.x - physics.currentlyMovingBody.velocity.x);
+            var y = Math.round(physics.currentlyMovingBody.y);
+            var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
+            
+            if (tile) {
+                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
+            }
+            return tile;
+        })();
+    } else if (utilities.isDirectionRight(physics.currentlyMovingBody)) {
+        return (() => {
+            var x = Math.round(physics.currentlyMovingBody.x + constant.TileSize.width + physics.currentlyMovingBody.velocity.x);
+            var y = Math.round(physics.currentlyMovingBody.y);
+            var tile =  world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
+            
+            if (tile) {
+                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
+            }
+            return tile;
+        })();
+    } else if (utilities.isDirectionDown(physics.currentlyMovingBody)) {
+        return (() => {
+            var x = Math.round(physics.currentlyMovingBody.x);
+            var y = Math.round(physics.currentlyMovingBody.y + constant.TileSize.heigth + physics.currentlyMovingBody.velocity.y);
+            var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
+        
+            if (tile) {
+                physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
+            }
+            return tile;
+        })();
+    }
+
+    return undefined;
+}
+
 function isMoving() {
     return  physics.currentlyMovingBody.velocity.x >=  constant.VelocityTreshold || 
             physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold ||
@@ -21,12 +63,11 @@ function isMoving() {
 }
 
 function move() {
-    // First IF only works for entities using .next -- player for now
-    if (isTileBlockingMovement(physics.currentlyMovingBody.next.x, physics.currentlyMovingBody.next.y) ) {
-        // Stops moving left or right if there's a Tile blocking the path
-        console.log("Tile is blocking movement for currently moving body :( 1");
+    var tile = getAndResolveOverlappingTile();
+    if (tile) {
         physics.stopCurrent();
-    } 
+        return;
+    }
  
     physics.currentlyMovingBody.x += physics.currentlyMovingBody.velocity.x;
     physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
@@ -44,39 +85,6 @@ function isFallingOverlap(collisionBody: CollisionBody) {
     if ( (physics.currentlyMovingBody.y + collisionBody.heigth) >= collisionBody.coordinates.y) {
         return true;
     }
-}
-
-function getBlockingTile() {
-    if (physics.currentlyMovingBody.velocity.y >= constant.VelocityTreshold) {
-        // FALLING
-        return world.map.getTileWorldXY(
-            physics.currentlyMovingBody.x + physics.currentlyMovingBody.velocity.x, 
-            (physics.currentlyMovingBody.y + constant.TileSize.heigth) + physics.currentlyMovingBody.velocity.y,
-            constant.TileSize.width, 
-            constant.TileSize.heigth, 
-            "collision"
-        );
-    } else if (physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold) {
-        // LEFT
-        return world.map.getTileWorldXY(
-            physics.currentlyMovingBody.x + physics.currentlyMovingBody.velocity.x, 
-            physics.currentlyMovingBody.y + physics.currentlyMovingBody.velocity.y,
-            constant.TileSize.width, 
-            constant.TileSize.heigth, 
-            "collision"
-        );
-    } else if (physics.currentlyMovingBody.velocity.x >= constant.VelocityTreshold) {
-        // RIGHT
-        return world.map.getTileWorldXY(
-            (physics.currentlyMovingBody.x + constant.TileSize.width) + physics.currentlyMovingBody.velocity.x, 
-            physics.currentlyMovingBody.y + physics.currentlyMovingBody.velocity.y,
-            constant.TileSize.width, 
-            constant.TileSize.heigth, 
-            "collision"
-        );
-    } 
-
-    return undefined;
 }
 
 function findFirstTileUnderBody(body?: PhysicsBody) {
@@ -123,9 +131,10 @@ function checkCollision(targetBody: PhysicsBody) {
     var current: CollisionBody = buildCollisionBody(physics.currentlyMovingBody);
     var target: CollisionBody = buildCollisionBody(targetBody);
 
-    if (areBodiesOverlapping(current, target)) {
-        resolveCollision(physics.currentlyMovingBody, current, target);
-
+    // Physics bodies
+    if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
+        console.log("Bodies overlap: ", current, target);
+        
         if (transferForce) {
             transferVelocity(targetBody);
             physics.stopCurrentAndSwap(targetBody);
@@ -137,6 +146,9 @@ function checkCollision(targetBody: PhysicsBody) {
 
         return true;
     }
+
+    // Tiles
+    
 
     return false;
 }
@@ -170,19 +182,34 @@ function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBod
     // NOTE this is stupidly simple but enough for this game
     
     // Pull the bodies apart based on velocity
-    if (toResolveCurrent.velocity.x <= constant.VelocityTreshold) {
+    if (toResolveCurrent.velocity.x <= -constant.VelocityTreshold &&
+        toResolveCurrent.tile.y === target.tile.y) {
+        console.log("TTT ", toResolveCurrent, target);
         // is moving from right to left, need to pull to right 
         toResolve.x = target.coordinates.x + target.width;
-    } else if(toResolveCurrent.velocity.x >= constant.VelocityTreshold) {
+        return true;
+    } else if(toResolveCurrent.velocity.x >= constant.VelocityTreshold &&
+        toResolveCurrent.tile.y === target.tile.y) {
+
         // is moving from left to right, need to pull to right
         toResolve.x = target.coordinates.x - target.width;
-    } else if(toResolveCurrent.velocity.y >= constant.VelocityTreshold) {
+        return true;
+    } else if(toResolveCurrent.velocity.y >= constant.VelocityTreshold &&
+        toResolveCurrent.tile.x === target.tile.x) {
+
         // is falling, need to pull up
         toResolve.y = target.coordinates.y - target.heigth;
-    } else {
+        return true;
+    } else if (toResolveCurrent.velocity.y <= -constant.VelocityTreshold &&
+        toResolveCurrent.tile.x === target.tile.x) {
+
         // is going up, need to pull down
         toResolve.y = target.coordinates.y + target.heigth;
+        return true;
     }
+
+    // No resolving required
+    return false;
 }
 
 function transferVelocity(target: PhysicsBody) {
@@ -305,7 +332,7 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
 
         if (!tile && !getBodyBelow(potentiallyFallingBody)) {
             // Falling
-            console.log("Body falling..", Math.round(potentiallyFallingBody.y/32));
+            console.log("Body falling..", Math.round(potentiallyFallingBody.y/32), " - ", potentiallyFallingBody.tiledType);
             findFirstTileUnderBody(potentiallyFallingBody);
             newMovingBody = potentiallyFallingBody;
             newMovingBody.velocity.x = 0;

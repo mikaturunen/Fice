@@ -20,6 +20,18 @@ module utilities {
         return Math.floor( value / constant.TileSize.width ) * constant.TileSize.width;
     }
 
+    export function isDirectionLeft(body: PhysicsBody) {
+        return body.velocity.x <= -constant.VelocityTreshold;
+    }
+
+    export function isDirectionRight(body: PhysicsBody) {
+        return body.velocity.x >= constant.VelocityTreshold;
+    }
+
+    export function isDirectionDown(body: PhysicsBody) {
+        return body.velocity.y >= constant.VelocityTreshold;
+    }
+
     export function onNextPosition(body: PhysicsBody) {
         if (body.velocity.x > 0) {
             // Moving right
