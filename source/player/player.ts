@@ -43,6 +43,7 @@ module player {
         sprite.body.tiledType = "PLAYER";
         // Current velocity of the sprite
         sprite.body.velocity = new Phaser.Point(0, 0);
+        sprite.body._uniqueId = utilities.getRunningId();
         // Next position of the body -- used with the tile based movement.
         sprite.body.next = new Phaser.Point(0, 0);
         sprite.body.previous = new Phaser.Point(0, 0);
