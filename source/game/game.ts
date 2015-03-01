@@ -67,6 +67,19 @@ function updateGame() {
     };
 }
 
+
+var renderBodyInfo = () => {
+    var body = physics.getBody(game.input.mousePointer.x, game.input.mousePointer.y);
+    if (body) {
+        var x = Math.round(body.x / 32);
+        var y = Math.round(body.y / 32);
+        var cx = body.x;
+        var cy = body.y;
+        var ttype = body.tiledType;
+        game.debug.text("ENTITY: " +x+ ", " +y+ " -- " +cx+ ", " +cy+ " -- " +ttype, 10, 13*32);
+    }   
+};
+
 /**
  * Additional render loop for Phaser.
  * @param {Game.Phaser} game Phasers game object
@@ -79,7 +92,9 @@ function renderGame() {
         game.debug.text("Player y       : " + Math.round(player.sprite.body.y) + ",  " + Math.round(player.sprite.body.y/32), 10, 40);
         game.debug.text("Player x       : " + Math.round(player.sprite.body.x) + ",  " + Math.round(player.sprite.body.x/32), 10, 55);
         // 2nd column
-        game.debug.text("__bodyUnder: " + player.sprite.body.____isOnTopOfBody, 300, 10);
+        game.debug.text("__bodyUnder: " + player.sprite.body.____isOnTopOfBody, 250, 10);
+        game.debug.text("mouse x,y: " + Math.round(game.input.mousePointer.x) + ", " + Math.round(game.input.mousePointer.y), 250, 25);
+        renderBodyInfo();
     };
 }
 

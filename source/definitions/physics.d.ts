@@ -38,6 +38,8 @@ interface CollisionBody {
         y: number;
     }
 
+    _uniqueId?: number;
+
     heigth: number;
     width: number;
 }
