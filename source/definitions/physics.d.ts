@@ -17,3 +17,25 @@ interface PhysicsBody extends Phaser.Physics.Arcade.Body {
     // DEBUG
     ____isOnTopOfBody: boolean;
 }
+
+interface CollisionBody {
+    /** Tile position */
+    tile: {
+        x: number;
+        y: number;
+    };
+
+    /** Pixel coordinate */
+    coordinates: {
+        x: number;
+        y: number;
+    };
+
+    velocity?: {
+        x: number;
+        y: number;
+    }
+
+    heigth: number;
+    width: number;
+}

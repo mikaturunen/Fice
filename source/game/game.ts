@@ -27,7 +27,7 @@ function preloadGame() {
         game.load.spritesheet("player", utilities.image("debug-colors.png"), constant.TileSize.width, constant.TileSize.heigth);
         // Note items sprite sheet is funky and it's not 128 pixels wide like the rest but 120 pixels..
         // TODO look into fixing the items-sheet.png when I'm feeling the jam.
-        game.load.spritesheet("items", utilities.image("debug-colors.png"), 30, constant.TileSize.heigth);
+        game.load.spritesheet("items", utilities.image("debug-colors.png"), 32, constant.TileSize.heigth);
     };
 }
 
