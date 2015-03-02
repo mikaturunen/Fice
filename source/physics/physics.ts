@@ -52,26 +52,61 @@ function isMoving() {
             physics.currentlyMovingBody.velocity.y <= -constant.VelocityTreshold;
 }
 
-function move() {
+function move(game: Phaser.Game) {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
         console.log("overlap, stop");
         physics.stopCurrent();
     }
- 
+
     physics.currentlyMovingBody.x += physics.currentlyMovingBody.velocity.x;
     physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
 
     // Stops the movement if the moving body has reached it's ending position
     if (!utilities.isDirectionDown(physics.currentlyMovingBody) && 
         physics.currentlyMovingBody.tiledType === "PLAYER" && 
-        utilities.onNextPosition(physics.currentlyMovingBody))
-        {
+        utilities.onNextPosition(physics.currentlyMovingBody)) {
 
+        // PLAYER reached end of position
         console.log("Next position reached - stop");
         physics.stopCurrent();
+        // TODO because of the below lines the movement is jerky! FIX!
         physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
         physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
+    } else if (!utilities.isDirectionDown(physics.currentlyMovingBody) && 
+        utilities.onNextPosition(physics.currentlyMovingBody)) {
+
+        // Entity reached next position, check if falls and otherwise recalculate new next
+         // TODO because of the below lines the movement is jerky! FIX!
+        physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
+        physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
+        
+
+        if (canFallTile(physics.currentlyMovingBody) && canFallBody(physics.currentlyMovingBody)) {
+            // Gravity can pull the current body down
+            console.log("Current body started falling..");
+            physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+            physics.currentlyMovingBody.velocity.x = 0;
+            physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+        } else {
+            console.log("Calculating new next for body..");
+            calculateNextForBody(physics.currentlyMovingBody);
+        }
+    }
+}
+
+function calculateNextForBody(body: PhysicsBody) {
+    var targetCollisionBody: CollisionBody = buildCollisionBody(body);
+
+    // which direction to place the next position at
+    if (utilities.isDirectionRight(body)) {
+        body.next.x = (targetCollisionBody.tile.x + 1) * constant.TileSize.width;
+        body.next.y = targetCollisionBody.coordinates.y;
+        console.log("Calculating next for body moving right..", body.next.x);
+    } else if (utilities.isDirectionLeft(body)) {
+        body.next.x = (targetCollisionBody.tile.x - 1) * constant.TileSize.width;
+        body.next.y = targetCollisionBody.coordinates.y;
+        console.log("Calculating next for body moving left..", body.next.x);
     }
 }
 
@@ -327,8 +362,8 @@ module physics {
         physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
 
         if (physics.currentlyMovingBody) {
-            move();
-            
+            move(game);
+
             if (!isMoving()) {
                 physics.currentlyMovingBody = undefined;
             }
@@ -360,6 +395,7 @@ module physics {
 
                 if (physics.currentlyMovingBody.tiledType === "PLAYER") {
                     targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
+                    calculateNextForBody(targetBody);
                 }
 
                 physics.stopCurrentAndSwap(targetBody);
