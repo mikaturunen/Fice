@@ -45,6 +45,10 @@ function getAndResolveOverlappingTile() {
     return undefined;
 }
 
+/** 
+ * Is currently moving physics body still moving. Loosely checks based on velocity tresholds.
+ * @returns {boolean} True when current body is moving.
+ */
 function isMoving() {
     return  physics.currentlyMovingBody.velocity.x >=  constant.VelocityTreshold || 
             physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold ||
@@ -52,6 +56,11 @@ function isMoving() {
             physics.currentlyMovingBody.velocity.y <= -constant.VelocityTreshold;
 }
 
+/** 
+ * Updates currently moving bodys position based on velocity and checks if the body has reached a certain stopping
+ * conditions.
+ * @param {Phaser.Game} game Game object from Phaser.
+ */
 function move(game: Phaser.Game) {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
@@ -95,6 +104,10 @@ function move(game: Phaser.Game) {
     }
 }
 
+/** 
+ * Calculates next position for given body based on it's current position and velocity. 
+ * @param {PhysicsBody} body Body to check next target for.
+ */
 function calculateNextForBody(body: PhysicsBody) {
     var targetCollisionBody: CollisionBody = buildCollisionBody(body);
 
@@ -110,6 +123,10 @@ function calculateNextForBody(body: PhysicsBody) {
     }
 }
 
+/**
+ * Attemps to find first PhysicsBody under currently moving body or given body.
+ * @param {PhysicsBody} [body= physics.currentlyMovingBody] Currently moving physics body.
+ */
 function findFirstTileUnderBody(body?: PhysicsBody) {
     var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
 

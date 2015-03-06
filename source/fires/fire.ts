@@ -1,6 +1,7 @@
 "use strict";
 
 import utilities = require("../utilities/utilities");
+import physics = require("../physics/physics");
 
 /**
  * @module fire
@@ -19,7 +20,19 @@ module fire {
         fire.sprites = game.add.group();
         utilities.fillSpriteGroup(fire.sprites, "TARGET", "entities", 8, game);
         console.log("Found", sprites.length, "fires");
-        console.log(sprites);
+        
+        fire.sprites.children.forEach((sprite: Phaser.Sprite) => {
+            game.physics.enable(sprite, Phaser.Physics.ARCADE);
+            sprite.name = "FIRE";
+            sprite.body.tiledType = "FIRE";
+            // Current velocity of the sprite
+            sprite.body.velocity = new Phaser.Point(0, 0);
+            sprite.body._uniqueId = utilities.getRunningId();
+            // Next position of the body -- used with the tile based movement.
+            sprite.body.next = new Phaser.Point(0, 0);
+            sprite.body.previous = new Phaser.Point(0, 0);
+            physics.physicsBodies.push(sprite.body);
+        });
     }
 }
 
