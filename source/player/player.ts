@@ -51,6 +51,16 @@ module player {
         sprite.body.____isOnTopOfBody = false;
         sprite.body.isDead = false;
 
+        sprite.animation.add("left", [ 9, 10, 11, 10 ]);
+        sprite.animation.add("right", [ 0, 1, 2, 1 ]);
+        sprite.animation.add("idleLeft", [ 14 ]);
+        sprite.animation.add("idleRight", [ 5 ]);
+        sprite.animation.add("fallingLeft", [ 15 ]);
+        sprite.animation.add("fallingRight", [ 4 ]);
+        sprite.animation.add("pushLeft", [ 9 ]);
+        sprite.animation.add("pushRight", [ 2 ]);
+        sprite.animation.add("death", [ 7 ]);
+
         physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
     }
