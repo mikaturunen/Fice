@@ -50,6 +50,7 @@ function createGame() {
 
         player.init(game);
         ice.init(game);
+        fires.init(game);
     };
 }
 

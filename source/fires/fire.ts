@@ -17,7 +17,7 @@ module fire {
 
     export function init(game: Phaser.Game) {
         fire.sprites = game.add.group();
-        utilities.fillSpriteGroup(fire.sprites, "TARGET", "entities", 3, game);
+        utilities.fillSpriteGroup(fire.sprites, "TARGET", "entities", 8, game);
         console.log("Found", sprites.length, "fires");
         console.log(sprites);
     }
