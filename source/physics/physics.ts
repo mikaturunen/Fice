@@ -45,10 +45,6 @@ function getAndResolveOverlappingTile() {
     return undefined;
 }
 
-/** 
- * Is currently moving physics body still moving. Loosely checks based on velocity tresholds.
- * @returns {boolean} True when current body is moving.
- */
 function isMoving() {
     return  physics.currentlyMovingBody.velocity.x >=  constant.VelocityTreshold || 
             physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold ||
@@ -56,11 +52,6 @@ function isMoving() {
             physics.currentlyMovingBody.velocity.y <= -constant.VelocityTreshold;
 }
 
-/** 
- * Updates currently moving bodys position based on velocity and checks if the body has reached a certain stopping
- * conditions.
- * @param {Phaser.Game} game Game object from Phaser.
- */
 function move(game: Phaser.Game) {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
@@ -104,10 +95,6 @@ function move(game: Phaser.Game) {
     }
 }
 
-/** 
- * Calculates next position for given body based on it's current position and velocity. 
- * @param {PhysicsBody} body Body to check next target for.
- */
 function calculateNextForBody(body: PhysicsBody) {
     var targetCollisionBody: CollisionBody = buildCollisionBody(body);
 
@@ -123,10 +110,6 @@ function calculateNextForBody(body: PhysicsBody) {
     }
 }
 
-/**
- * Attemps to find first PhysicsBody under currently moving body or given body.
- * @param {PhysicsBody} [body= physics.currentlyMovingBody] Currently moving physics body.
- */
 function findFirstTileUnderBody(body?: PhysicsBody) {
     var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
 
@@ -166,6 +149,7 @@ function checkCollision(targetBody: PhysicsBody) {
 
     // Physics bodies
     if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
+        killBodies(physics.currentlyMovingBody, targetBody);
         return true;
     }
 
@@ -195,6 +179,16 @@ function areBodiesOverlapping(current: CollisionBody, target: CollisionBody) {
 
     // We are overlapping :{
     return true;
+}
+
+function killBodies(current: PhysicsBody, target: PhysicsBody) {
+    if (current.tiledType === "PLAYER" || current.tiledType === "ICE") {
+        if (target.tiledType === "FIRE") {
+            current.isDead = true;
+            target.isDead = current.tiledType === "ICE";
+            console.log("FIRE FOUND", target.tiledType);
+        }
+    }
 }
 
 function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBody, target: CollisionBody) {
@@ -345,6 +339,10 @@ module physics {
     /** @type {Phaser.Physics.Arcade.Body[]} Set of bodies the Games physics affect */
     export var physicsBodies: PhysicsBody[] = [];
 
+    export function killBody(body: PhysicsBody) {
+        physics.physicsBodies = physics.physicsBodies.filter(b => b._uniqueId !== body._uniqueId);
+    }
+
     export function stopCurrent() {
         if (!physics.currentlyMovingBody) {
             return;
@@ -410,7 +408,7 @@ module physics {
                 console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ",", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
                 console.log("Target :", Math.round(targetBody.x / 32), ",", Math.round(targetBody.y / 32), targetBody._uniqueId);
 
-                if (physics.currentlyMovingBody.tiledType === "PLAYER") {
+                if (physics.currentlyMovingBody.tiledType === "PLAYER" && targetBody.tiledType === "ICE") {
                     targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
                     calculateNextForBody(targetBody);
                 }
@@ -418,6 +416,10 @@ module physics {
                 physics.stopCurrentAndSwap(targetBody);
                 return;
             }
+        }
+
+        if (physics.currentlyMovingBody && physics.currentlyMovingBody.isDead) {
+            physics.currentlyMovingBody = undefined;
         }
     }
 

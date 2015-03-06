@@ -32,6 +32,17 @@ module fire {
             sprite.body.next = new Phaser.Point(0, 0);
             sprite.body.previous = new Phaser.Point(0, 0);
             physics.physicsBodies.push(sprite.body);
+            sprite.body.isDead = false;
+        });
+    }
+
+    export function update(game: Phaser.Game) {
+        fire.sprites.children.forEach((sprite: Phaser.Sprite)  => {
+            if (sprite.body.isDead) {
+                console.log("fire death");
+                physics.killBody(sprite.body);
+                sprite.kill();
+            }
         });
     }
 }

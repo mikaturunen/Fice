@@ -26,7 +26,7 @@ module ice {
         ice.sprites = game.add.group();
         utilities.fillSpriteGroup(ice.sprites, "BLOCK", "entities", 0, game);
 
-        ice.sprites.children.forEach((sprite: Phaser.Sprite) => {
+        ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
             sprite.name = "ICE";
             sprite.body.tiledType = "ICE";
@@ -37,6 +37,7 @@ module ice {
             sprite.body.next = new Phaser.Point(0, 0);
             sprite.body.previous = new Phaser.Point(0, 0);
             physics.physicsBodies.push(sprite.body);
+            sprite.body.isDead = false;
         });
     }
 
@@ -45,6 +46,13 @@ module ice {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function update(game: Phaser.Game) {
+        ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
+            if (sprite.body.isDead) {
+                physics.killBody(sprite.body);
+                sprite.kill();
+                console.log("ice death");
+            }
+        });
     }
 }
 

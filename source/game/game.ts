@@ -63,6 +63,7 @@ function updateGame() {
     return () => {
         player.update(game);
         ice.update(game);
+        fires.update(game);
 
         physics.update(game);
     };

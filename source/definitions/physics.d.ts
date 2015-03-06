@@ -18,6 +18,9 @@ interface PhysicsBody extends Phaser.Physics.Arcade.Body {
 
     // DEBUG
     ____isOnTopOfBody: boolean;
+
+    /** @type {boolean} Did the physics body die? If so, allow the entity to kill itself accordingly. */
+    isDead: boolean;
 }
 
 interface CollisionBody {

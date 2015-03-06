@@ -49,6 +49,7 @@ module player {
         sprite.body.previous = new Phaser.Point(0, 0);
         sprite.body.hasJustStarted = false;
         sprite.body.____isOnTopOfBody = false;
+        sprite.body.isDead = false;
 
         physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
@@ -97,7 +98,11 @@ module player {
     export function update(game: Phaser.Game) {
         checkInputs(game);
 
-    
+        if (player.sprite.body.isDead) {
+            physics.killBody(player.sprite.body);
+            player.death();
+            console.log("player death");
+        }
     }
 }
 
