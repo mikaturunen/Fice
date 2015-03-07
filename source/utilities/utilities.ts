@@ -1,5 +1,6 @@
 
 import constant = require("./constants");
+import world = require("../world/tiles");
 
 /**
  * @module utilities
@@ -12,9 +13,6 @@ module utilities {
         runningId += 1;
         return runningId;
     }
-    // TODO in the future we can replace http-server with node and serve the maps from DB if we see the need for it
-    // TODO create a proper loader for the lvl jsons. For now this'll do
-    export var lvlJson = require("../../assets/levels/lvl.json");
 
     export function sortIntoAscendingYOrder(physicsBodies: PhysicsBody[]) {
         return physicsBodies.sort((l: PhysicsBody, r: PhysicsBody) => { 
@@ -125,7 +123,7 @@ module utilities {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function fillSpriteGroup(spriteGroup: Phaser.Group, type: string, layer: string, frame: number, game: any)  {
-        createFromType(type, layer, utilities.lvlJson).forEach((obj: TiledObject) => {
+        createFromType(type, layer, world.currentLevelJson).forEach((obj: TiledObject) => {
             var x: number = utilities.floorToWorldTileCoordinate(obj.x);
             var y: number = utilities.floorToWorldTileCoordinate(obj.y);
             var sprite: Phaser.Sprite = game.add.sprite(x, y, "items");

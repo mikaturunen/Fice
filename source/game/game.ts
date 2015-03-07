@@ -22,7 +22,8 @@ var game: Phaser.Game;
  */
 function preloadGame() {
     return () => {
-        game.load.tilemap("level", utilities.level("lvl-debug.json"), null, Phaser.Tilemap.TILED_JSON);
+        // World 1, level 1
+        world.loadLevel(game, 1, 1);
         game.load.image("tiles", utilities.image("debug-colors.png"));
         game.load.spritesheet("player", utilities.image("player-sheet.png"), constant.TileSize.width, constant.TileSize.heigth);
         // Note items sprite sheet is funky and it's not 128 pixels wide like the rest but 120 pixels..

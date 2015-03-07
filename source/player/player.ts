@@ -58,7 +58,7 @@ module player {
     export function init(game: Phaser.Game) {
         // TODO once the initial prototyping phase is over; read the information from Phaser.Tilemap
         // TODO --> https://github.com/photonstorm/phaser/pull/1609 -- merged, waits release
-        var start: TiledObject[] = utilities.createFromType("START", "entities", utilities.lvlJson);
+        var start: TiledObject[] = utilities.createFromType("START", "entities", world.currentLevelJson);
 
         if (start.length <= 0) {
             throw "Could not load START entity from given map. Please make sure you have a start defined";

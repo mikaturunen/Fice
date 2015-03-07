@@ -10,13 +10,6 @@ module constants {
     var levelsDirectory: string = "levels/";
     var imagesDirectory: string = "images/"
 
-    export var Direction = {
-        Left: "LEFT",
-        Right: "RIGHT",
-        Up: "UP",
-        Down: "DOWN"
-    };
-
     export var AssetDirectoryPath: string = "/assets/";
 
     /** @type {string} Generalized location for level assets. */

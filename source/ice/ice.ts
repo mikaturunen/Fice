@@ -24,7 +24,7 @@ module ice {
      */
     export function init(game: Phaser.Game) {
         ice.sprites = game.add.group();
-        utilities.fillSpriteGroup(ice.sprites, "BLOCK", "entities", 0, game);
+        utilities.fillSpriteGroup(ice.sprites, "ICE", "entities", 0, game);
 
         ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
