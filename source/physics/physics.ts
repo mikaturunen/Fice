@@ -310,8 +310,11 @@ function canFallBody(target: PhysicsBody) {
     physics.physicsBodies.forEach(target => {
         var targetBody: CollisionBody = buildCollisionBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
-            // We have a body under, not allowed to fall
-            canFall = false;
+            // If it's fire, we allow other bodies to fall on it and DIE!
+            if (target.tiledType !== "FIRE") {
+                // We have a body under, not allowed to fall
+                canFall = false;
+            } 
         } 
     });
 
