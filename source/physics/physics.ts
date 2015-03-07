@@ -45,13 +45,6 @@ function getAndResolveOverlappingTile() {
     return undefined;
 }
 
-function isMoving() {
-    return  physics.currentlyMovingBody.velocity.x >=  constant.VelocityTreshold || 
-            physics.currentlyMovingBody.velocity.x <= -constant.VelocityTreshold ||
-            physics.currentlyMovingBody.velocity.y >=  constant.VelocityTreshold ||
-            physics.currentlyMovingBody.velocity.y <= -constant.VelocityTreshold;
-}
-
 function move(game: Phaser.Game) {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
@@ -423,6 +416,17 @@ module physics {
         }
     }
 
+    /** 
+     * Is PhysicsBody moving. 
+     * @param {PhysicsBody} [body= physics.currentlyMovingBody] The body to check for movement
+     * @returns {boolean} true when it has velocity over treshold.
+     */
+    export function isMoving(body?: PhysicsBody) {
+        var b = body ? body : physics.currentlyMovingBody;
+
+        return  utilities.isDirectionRight(b) || utilities.isDirectionLeft(b) ||
+                utilities.isDirectionDown(b) || b.velocity.y <= -constant.VelocityTreshold;
+    }
 }
 
 export = physics;

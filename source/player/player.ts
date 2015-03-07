@@ -6,12 +6,43 @@ import world = require("../world/tiles");
 import gravity = require("../physics/gravity");
 import physics = require("../physics/physics");
 
-/** @type {string} Current position. */
-var currentPosition: Phaser.Point = new Phaser.Point(0, 0);
-/** @type {string} Position we are moving towards. */
-var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
-
 var input: Phaser.CursorKeys; 
+var isFacingLeft: boolean = true;
+var constantAnimationSpeed: number = 8;
+
+/** 
+ * Based on different velocity conditions, sets the players animation to the correct animation loop.
+ * Physics engine can also tinker with players animations.
+ */
+function setAnimationFrames() {
+    if (physics.currentlyMovingBody && player.sprite.body._uniqueId !== physics.currentlyMovingBody._uniqueId) {
+        // TODO only few animations we can set when we are not actively moving
+        return;
+    }
+
+    // Player actively moving, inspect velocity and decide on animation based on that.
+    if (utilities.isDirectionLeft(player.sprite.body)) {
+        player.sprite.animations.play("left", constantAnimationSpeed, true);
+    } else if (utilities.isDirectionRight(player.sprite.body)) {
+        player.sprite.animations.play("right", constantAnimationSpeed, true);
+    } else if (utilities.isDirectionDown(player.sprite.body)) {
+
+        if (isFacingLeft) {
+            player.sprite.animations.play("fallingLeft", constantAnimationSpeed, true);
+        } else {
+            player.sprite.animations.play("fallingRight", constantAnimationSpeed, true);
+        }
+
+    } else {
+        // Player is not moving
+        // IDLE left / right
+        if (isFacingLeft) {
+            player.sprite.animations.play("idleLeft", constantAnimationSpeed, true);
+        } else {
+            player.sprite.animations.play("idleRight", constantAnimationSpeed, true);
+        }
+    }
+}
 
 /**
  * @module player
@@ -51,15 +82,15 @@ module player {
         sprite.body.____isOnTopOfBody = false;
         sprite.body.isDead = false;
 
-        sprite.animation.add("left", [ 9, 10, 11, 10 ]);
-        sprite.animation.add("right", [ 0, 1, 2, 1 ]);
-        sprite.animation.add("idleLeft", [ 14 ]);
-        sprite.animation.add("idleRight", [ 5 ]);
-        sprite.animation.add("fallingLeft", [ 15 ]);
-        sprite.animation.add("fallingRight", [ 4 ]);
-        sprite.animation.add("pushLeft", [ 9 ]);
-        sprite.animation.add("pushRight", [ 2 ]);
-        sprite.animation.add("death", [ 7 ]);
+        sprite.animations.add("left", [ 9, 10, 11, 10 ]);
+        sprite.animations.add("right", [ 0, 1, 2, 1 ]);
+        sprite.animations.add("idleLeft", [ 14 ]);
+        sprite.animations.add("idleRight", [ 5 ]);
+        sprite.animations.add("fallingLeft", [ 15 ]);
+        sprite.animations.add("fallingRight", [ 4 ]);
+        sprite.animations.add("pushLeft", [ 9 ]);
+        sprite.animations.add("pushRight", [ 2 ]);
+        sprite.animations.add("death", [ 7 ]);
 
         physics.physicsBodies.push(sprite.body);
         input = game.input.keyboard.createCursorKeys();
@@ -67,6 +98,7 @@ module player {
 
     export function checkInputs(game: Phaser.Game) {
         if (physics.currentlyMovingBody) {
+            setAnimationFrames();
             return;
         }
 
@@ -78,12 +110,14 @@ module player {
             sprite.body.velocity.y = 0;
             sprite.body.next.x = utilities.floorToWorldTileCoordinate(x);
             sprite.body.next.y = sprite.body.y;
+            isFacingLeft = true;
         } else if (input.right.isDown) {
             console.log("right");
             sprite.body.velocity.x = constant.Velocity * game.time.elapsed;
             sprite.body.velocity.y = 0;
             sprite.body.next.x = utilities.floorToWorldTileCoordinate(sprite.body.x + (constant.TileSize.width * 1.5));
             sprite.body.next.y = sprite.body.y;
+            isFacingLeft = false;
         }
 
         // TODO climbing
@@ -95,6 +129,8 @@ module player {
             physics.currentlyMovingBody = player.sprite.body;
             sprite.body.hasJustStarted = true;
         } 
+
+        setAnimationFrames();
     };
 
     /**
