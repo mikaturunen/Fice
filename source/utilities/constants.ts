@@ -10,7 +10,7 @@ module constants {
     var levelsDirectory: string = "levels/";
     var imagesDirectory: string = "images/"
 
-    export var TotalTilesVertical = 14;
+    export var TotalTilesY = 14;
 
     export var AssetDirectoryPath: string = "/assets/";
 
