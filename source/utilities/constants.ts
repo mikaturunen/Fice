@@ -10,6 +10,8 @@ module constants {
     var levelsDirectory: string = "levels/";
     var imagesDirectory: string = "images/"
 
+    export var TotalTilesVertical = 14;
+
     export var AssetDirectoryPath: string = "/assets/";
 
     /** @type {string} Generalized location for level assets. */
