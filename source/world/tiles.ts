@@ -8,6 +8,10 @@ var levels: any = {
         "1": { 
             path: constant.LevelsAssetDirectory + "lvl1-1.debug.json", 
             json: require("../../assets/levels/lvl1-1.debug.json")
+        },
+        "2": {
+            path: constant.LevelsAssetDirectory + "lvl1-2.debug.json", 
+            json: require("../../assets/levels/lvl1-2.debug.json")
         }
     }
 }
