@@ -308,32 +308,33 @@ function pointInside(x: number, y: number, target: PhysicsBody) {
     return Phaser.Rectangle.contains(rect, x, y);
 }
 
+function buildCollisionBody(body: PhysicsBody) {
+    return <CollisionBody> {
+        tile: {  
+            x: Math.round(body.x / constant.TileSize.width),
+            y: Math.round(body.y / constant.TileSize.heigth)
+        },
+        coordinates: {
+            x: body.x,
+            y: body.y,
+        },
+        velocity: {
+            x: body.velocity.x,
+            y: body.velocity.y
+        },
+        width: constant.TileSize.width,
+        heigth: constant.TileSize.heigth,
+        _uniqueId: body._uniqueId
+    };
+}
+
 module physics {
     
     export var currentlyMovingBody: PhysicsBody;
+    export var currentlyIceBodies: PhysicsBody[] = [];
 
     /** @type {Phaser.Physics.Arcade.Body[]} Set of bodies the Games physics affect */
     export var physicsBodies: PhysicsBody[] = [];
-
-    export function buildCollisionBody(body: PhysicsBody) {
-        return <CollisionBody> {
-            tile: {  
-                x: Math.round(body.x / constant.TileSize.width),
-                y: Math.round(body.y / constant.TileSize.heigth)
-            },
-            coordinates: {
-                x: body.x,
-                y: body.y,
-            },
-            velocity: {
-                x: body.velocity.x,
-                y: body.velocity.y
-            },
-            width: constant.TileSize.width,
-            heigth: constant.TileSize.heigth,
-            _uniqueId: body._uniqueId
-        };
-    }
 
     export function killBody(body: PhysicsBody) {
         physics.physicsBodies = physics.physicsBodies.filter(b => b._uniqueId !== body._uniqueId);

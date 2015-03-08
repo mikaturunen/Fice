@@ -115,7 +115,8 @@ module utilities {
     };
 
     export function isInTresholdConstrain(pixelPositionOrVelocity: number, target: number) {
-        return pixelPositionOrVelocity <= (target + )
+        return pixelPositionOrVelocity <= (target + constant.VelocityTreshold) && 
+            pixelPositionOrVelocity >= (target - constant.VelocityTreshold);
     }
 
     /**
@@ -140,36 +141,6 @@ module utilities {
             sprite.name = type;
             sprite.z = 1000;
             spriteGroup.add(sprite);
-        });
-    };
-
-
-    /**
-     * Fills a given Phaser.Group with Sprites found from the Layer of provided Type.
-     * @param {Phaser.Group[]} spriteGroup group to fill with Sprites
-     * @param {string} type Type to find from layer. Inspects JSONs .type property on the layer
-     * @param {string} layer Layer to find from the JSON data.
-     * @param {number} frame What frame to use from tile sheet.
-     * @param {Phaser.Game} game Game object from Phaser.
-     */
-    export function fillSpriteGroups(spriteGroup: Phaser.Group[], type: string, layer: string, frame: number, game: any)  {
-        createFromType(type, layer, world.currentLevelJson).forEach((obj: TiledObject) => {
-            var x: number = utilities.floorToWorldTileCoordinate(obj.x);
-            var y: number = utilities.floorToWorldTileCoordinate(obj.y);
-            var sprite: Phaser.Sprite = game.add.sprite(x, y, "items");
-            // Enabling physics for the body
-            game.physics.enable(sprite, Phaser.Physics.ARCADE);
-            // Setting frame and body size for the physics
-            sprite.frame = frame;
-            sprite.body.setSize(constant.TileSize.width, constant.TileSize.heigth);
-            // Adding it into the blocks group
-            sprite.name = type;
-            sprite.z = 1000;
-
-            // Add the sprite into a separate group and add that group into the groups collection
-            group = game.add.group();
-            group.add(sprite);
-            spriteGroup.push(group);
         });
     };
 };

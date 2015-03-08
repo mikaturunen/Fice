@@ -36,6 +36,7 @@ module fire {
                 console.log("fire death");
                 physics.killBody(sprite.body);
                 sprite.kill();
+                // TODO remove fire from collection! physics + sprite
             }
         });
     }

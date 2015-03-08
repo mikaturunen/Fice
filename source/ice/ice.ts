@@ -16,6 +16,10 @@ var nextPosition: Phaser.Point = new Phaser.Point(0, 0);
  * ice module.
  */
 module ice {
+    /** 
+     * Each ice block is its own group and once they combine they hop from group to group.
+     * @type {Phaser.Group[]}
+     */
     export var sprites: Phaser.Group;
 
     /**
@@ -25,7 +29,7 @@ module ice {
     export function init(game: Phaser.Game) {
         ice.sprites = game.add.group();
         utilities.fillSpriteGroup(ice.sprites, "ICE", "entities", 0, game);
-
+        // Iterate over ALL the sprites 
         ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
             game.physics.enable(sprite, Phaser.Physics.ARCADE);
             sprite.name = "ICE";
@@ -46,11 +50,13 @@ module ice {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function update(game: Phaser.Game) {
+        // Iterate over ALL the sprites in a single group
         ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
             if (sprite.body.isDead) {
                 physics.killBody(sprite.body);
                 sprite.kill();
                 console.log("ice death");
+                // TODO remove ice from collection! physics + sprite
             }
         });
     }
