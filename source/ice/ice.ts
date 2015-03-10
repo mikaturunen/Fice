@@ -55,6 +55,7 @@ module ice {
 
         if (deadSprites.length > 0) {
             console.log("Found death ice sprites", deadSprites.length);
+            physics.killBodies( deadSprites.map((d: any) => d.body._uniqueId) );
         }
     }
 }

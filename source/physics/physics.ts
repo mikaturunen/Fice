@@ -363,6 +363,12 @@ module physics {
         physics.physicsBodies = physics.physicsBodies.filter(b => b._uniqueId !== body._uniqueId);
     }
 
+    export function killBodies(bodies: number[]) {
+        console.log("Current bodies:", physicsBodies.length);
+        physics.physicsBodies = physics.physicsBodies.filter(b => bodies.indexOf(b._uniqueId) === -1);
+        console.log("Current bodies after removal:", physicsBodies.length);
+    }
+
     export function stopCurrent() {
         if (!physics.currentlyMovingBody) {
             return;

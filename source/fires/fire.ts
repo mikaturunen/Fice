@@ -36,6 +36,7 @@ module fire {
 
         if (deadSprites.length > 0) {
             console.log("Found death fire sprites", deadSprites.length);
+            physics.killBodies( deadSprites.map((d: any) => d.body._uniqueId) );
         }
     }
 }
