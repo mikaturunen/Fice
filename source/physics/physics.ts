@@ -280,8 +280,8 @@ function canFallTile(target: PhysicsBody) {
     return  canFall;
 }
 
-function canFallBody(target: PhysicsBody) {
-    var body = buildCollisionBody(target);
+function canFallBody(current: PhysicsBody) {
+    var body = buildCollisionBody(current);
     var canFall: boolean = true;
 
     // go down one 
@@ -290,8 +290,11 @@ function canFallBody(target: PhysicsBody) {
     physics.physicsBodies.forEach(target => {
         var targetBody: CollisionBody = buildCollisionBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
-            // If it's fire, we allow other bodies to fall on it and DIE!
-            if (target.tiledType !== "FIRE") {
+            if (current.tiledType === "FIRE" && target.tiledType === "FIRE") {
+                console.log("fire and fire");
+                canFall = false;
+            } else if (target.tiledType !== "FIRE") {
+                // If it's fire, we allow other bodies to fall on it and DIE!
                 // We have a body under, not allowed to fall
                 canFall = false;
             } 
@@ -427,7 +430,7 @@ module physics {
                         physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
                         physics.currentlyMovingBody.velocity.x = 0;
 
-                        console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
+                        console.log("I BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
                     });
                 }
             });
@@ -443,7 +446,7 @@ module physics {
                         physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
                         physics.currentlyMovingBody.velocity.x = 0;
 
-                        console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
+                        console.log("O BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
                     }
                 });
             } 
