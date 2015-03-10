@@ -334,7 +334,7 @@ function getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     for (var y = 0; y < constant.TotalTilesY; y++) {
         var group = iceBodies.filter(i => buildCollisionBody(i).tile.y === y);
 
-        if (group.length < 0) {
+        if (group.length > 0) {
             groups.push(group);
         }
     }
@@ -411,13 +411,15 @@ module physics {
         }
 
         // When no body is in motion, try finding a body we can put into motion through gravity
-        if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length <= 0) {
+        if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
+            console.log("TEST");
             var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
             var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
 
             // Iterate ice blocks and see if they will start falling
             var iceGroups: PhysicsBody[][] = getIceBodiesGroupByY(iceBodies);
             iceGroups.forEach((iceBodiesOnSameLevel: PhysicsBody[]) => {
+                console.log("contains tiles:", iceBodiesOnSameLevel.length);
                 // TODO connect bodies
                 if (iceBodiesOnSameLevel.every(canFall)) {
                     console.log("ICE BLOCK ON SAME LEVEL CAN DROP :D:D:D", iceBodiesOnSameLevel.length);
