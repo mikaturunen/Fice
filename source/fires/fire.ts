@@ -31,14 +31,12 @@ module fire {
     }
 
     export function update(game: Phaser.Game) {
-        fire.sprites.children.forEach((sprite: Phaser.Sprite)  => {
-            if (sprite.body.isDead) {
-                console.log("fire death");
-                physics.killBody(sprite.body);
-                sprite.kill();
-                // TODO remove fire from collection! physics + sprite
-            }
-        });
+        var deadSprites = fire.sprites.children.filter((s: Phaser.Sprite) => s.body.isDead === true);
+        fire.sprites.children = fire.sprites.children.filter((s: Phaser.Sprite) => s.body.isDead === false);
+
+        if (deadSprites.length > 0) {
+            console.log("Found death fire sprites", deadSprites.length);
+        }
     }
 }
 

@@ -328,11 +328,11 @@ function buildCollisionBody(body: PhysicsBody) {
     };
 }
 
-var getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
+function getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     var groups: PhysicsBody[][] = [];
 
     for (var y = 0; y < constant.TotalTilesY; y++) {
-        group = iceBodies.filter(i => buildCollisionBody(i).tile.y === y);
+        var group = iceBodies.filter(i => buildCollisionBody(i).tile.y === y);
 
         if (group.length < 0) {
             groups.push(group);
@@ -340,6 +340,14 @@ var getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     }
 
     return groups;
+}
+
+function canFall(target: PhysicsBody) {
+    if(canFallTile(target) && canFallBody(target)) {
+        return true;
+    }
+
+    return false;
 }
 
 module physics {
@@ -397,7 +405,7 @@ module physics {
         }
 
         // When no body is in motion, try finding a body we can put into motion through gravity
-        if (!physics.currentlyMovingBody) {
+        if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length <= 0) {
             var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
             var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
 
@@ -405,13 +413,16 @@ module physics {
             var iceGroups: PhysicsBody[][] = getIceBodiesGroupByY(iceBodies);
             iceGroups.forEach((iceBodiesOnSameLevel: PhysicsBody[]) => {
                 // TODO connect bodies
+                if (iceBodiesOnSameLevel.every(canFall)) {
+                    console.log("ICE BLOCK ON SAME LEVEL CAN DROP :D:D:D", iceBodiesOnSameLevel.length);
+                }
             });
 
             // No ice blocks moving
             if (currentlyIceBodies.length <= 0) {
                 // Iterate rest of the bodies
                 otherBodies.forEach(target => {
-                    if (!physics.currentlyMovingBody && canFallTile(target) && canFallBody(target)) {
+                    if (!physics.currentlyMovingBody && canFall(target)) {
                         // The target body has nothing under it, we can make it fall - no body or tile blocking 
                         physics.stopCurrentAndSwap(target);
                         physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;

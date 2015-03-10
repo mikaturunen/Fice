@@ -50,15 +50,12 @@ module ice {
      * @param {Phaser.Game} game Game object from Phaser.
      */
     export function update(game: Phaser.Game) {
-        // Iterate over ALL the sprites in a single group
-        ice.sprites.children.forEach((sprite: Phaser.Sprite)  => {
-            if (sprite.body.isDead) {
-                physics.killBody(sprite.body);
-                sprite.kill();
-                console.log("ice death");
-                // TODO remove ice from collection! physics + sprite
-            }
-        });
+        var deadSprites = ice.sprites.children.filter((s: Phaser.Sprite) => s.body.isDead === true);
+        ice.sprites.children = ice.sprites.children.filter((s: Phaser.Sprite) => s.body.isDead === false);
+
+        if (deadSprites.length > 0) {
+            console.log("Found death ice sprites", deadSprites.length);
+        }
     }
 }
 
