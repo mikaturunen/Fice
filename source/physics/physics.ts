@@ -412,17 +412,23 @@ module physics {
 
         // When no body is in motion, try finding a body we can put into motion through gravity
         if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
-            console.log("TEST");
             var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
             var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
 
             // Iterate ice blocks and see if they will start falling
             var iceGroups: PhysicsBody[][] = getIceBodiesGroupByY(iceBodies);
             iceGroups.forEach((iceBodiesOnSameLevel: PhysicsBody[]) => {
-                console.log("contains tiles:", iceBodiesOnSameLevel.length);
                 // TODO connect bodies
                 if (iceBodiesOnSameLevel.every(canFall)) {
-                    console.log("ICE BLOCK ON SAME LEVEL CAN DROP :D:D:D", iceBodiesOnSameLevel.length);
+                    iceBodiesOnSameLevel.forEach(target => {
+                        // The target body has nothing under it, we can make it fall - no body or tile blocking 
+                        physics.stopCurrentAndSwap(target);
+                        physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                        physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+                        physics.currentlyMovingBody.velocity.x = 0;
+
+                        console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
+                    });
                 }
             });
 
