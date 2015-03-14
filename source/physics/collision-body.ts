@@ -76,6 +76,17 @@ module collision_body {
                 )
             );
     }
+
+    /** 
+     * Checks if any bodies in the bodies collection are right on top of given Body. Blocking upward motion.
+     * @param {PhysicsBody}   body   
+     * @param {PhysicsBody[]} bodies Set of bodies to check body against
+     * @returns {boolean} returns true when nothing is on top.
+     */
+    export function nothingOnTop(body: PhysicsBody, bodies: PhysicsBody[]) {
+        // when .some returns false -- nothing was found above, we return true as nothing is above
+        return bodies.some(b => b.tile.y === yLevelAbove && b.tile.x === body.tile.x) === false;
+    }
 }
 
 export = collision_body;
