@@ -30,10 +30,6 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                if (canClimb(physics.currentlyMovingBody, tile)) {
-                    // Make sure player climbs the tile
-                    console.log(" I CAN CLIMB :3");
-                } 
                 // Block movement
                 physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
             }
@@ -47,10 +43,6 @@ function getAndResolveOverlappingTile() {
             var tile =  world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                if (canClimb(physics.currentlyMovingBody, tile)) {
-                    // Make sure player climbs the tile
-                    console.log(" I CAN CLIMB :3");
-                }
                 // Block movement
                 physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
             }
@@ -64,10 +56,6 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
         
             if (tile) {
-                 if (canClimb(physics.currentlyMovingBody, tile)) {
-                    // Make sure player climbs the tile
-                    console.log(" I CAN CLIMB :3");
-                } 
                 // Block movement
                 physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
                 
@@ -83,6 +71,9 @@ function getAndResolveOverlappingTile() {
 function move(game: Phaser.Game) {
     var tile = getAndResolveOverlappingTile();
     if (tile) {
+        if (canClimb(physics.currentlyMovingBody, tile)) {
+            console.log("CAN CLIMB AHOY! :D");
+        }
         console.log("overlap, stop");
         physics.stopCurrent();
     }
