@@ -11,6 +11,7 @@ module constants {
     var imagesDirectory: string = "images/"
 
     export var TotalTilesY = 14;
+    export var TotalTilesX = 16;
 
     export var AssetDirectoryPath: string = "/assets/";
 
