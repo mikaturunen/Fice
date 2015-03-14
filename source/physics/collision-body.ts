@@ -12,7 +12,7 @@ module collision_body {
      * @param {Phaser.Tile} tile
      * @returns {CollisionBody} CollisionBody object.
      */
-    export function collisionBodyFromTile(tile: Phaser.Tile) {
+    export function fromTile(tile: Phaser.Tile) {
         return <CollisionBody> {
             tile: {  
                 x: tile.x,
@@ -37,7 +37,7 @@ module collision_body {
      * @param {PhysicsBody} body
      * @returns {CollisionBody} CollisionBody object.
      */
-    export function collisionBodyFromPhysicsBody(body: PhysicsBody) {
+    export function fromPhysicsBody(body: PhysicsBody) {
         return <CollisionBody> {
             tile: {  
                 x: Math.round(body.x / constant.TileSize.width),
