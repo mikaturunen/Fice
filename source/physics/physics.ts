@@ -4,21 +4,20 @@ import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
 import collisionBody = require("./collision-body");
 
-function nothingOnTopOfTile(tile: Phaser.Tile) {
-
-}
-
-function nothingOnTopOfBody(tile: Phaser.Tile) {
-
-}
-
 /**
  * Tests if the body facing the given Tile can climb on top of it.
  * @param {PhysicsBody} body That collided with the tile
  * @param {Phaser.Tile} tile Tile the body collided with
  */
-function canBlimb(body: PhysicsBody, tile: Phaser.Tile) {
-    return nothingOnTopOfTile(tile) && nothingOnTopOfBody(body);
+function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
+    var tiles = collisionBody.fromTiles(world.getAllTiles());
+
+    var bodies = []
+        .concat(physics.collisionBodies)
+        .concat(tiles);
+
+    return collisionBody.nothingOnTop(collisionBody.fromPhysicsBody(body), bodies) && 
+        collisionBody.nothingOnTop(collisionBody.fromTile(tile), bodies);
 }
 
 /** 
