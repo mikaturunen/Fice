@@ -10,11 +10,10 @@ import collisionBody = require("./collision-body");
  * @param {Phaser.Tile} tile Tile the body collided with
  */
 function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
-    var tiles = collisionBody.fromTiles(world.getAllTiles());
-
+    // Combining all tiles and physics bodies into a single ball of a messy collision data
     var bodies = []
-        .concat(physics.collisionBodies)
-        .concat(tiles);
+        .concat(collisionBody.fromPhysicsBodies(physics.physicsBodies))
+        .concat(collisionBody.fromTiles(world.getAllTiles()));
 
     return collisionBody.nothingOnTop(collisionBody.fromPhysicsBody(body), bodies) && 
         collisionBody.nothingOnTop(collisionBody.fromTile(tile), bodies);
@@ -31,12 +30,12 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                if (canClimb()) {
+                if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
-                } else {
+                } 
                     // Block movement
                     physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
-                }
+                
             }
             return tile;
         })();
@@ -48,12 +47,12 @@ function getAndResolveOverlappingTile() {
             var tile =  world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                if (canClimb()) {
+                if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
-                } else {
+                }
                     // Block movement
                     physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
-                }
+                
             }
             return tile;
         })();
@@ -65,12 +64,12 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
         
             if (tile) {
-                if (canClimb()) {
+                 if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
-                } else {
+                } 
                     // Block movement
                     physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
-                }
+                
             }
             return tile;
         })();

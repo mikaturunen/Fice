@@ -1,5 +1,7 @@
 "use strict";
 
+import constant = require("../utilities/constants");
+
 /**
  * Creates the actual CollisionBody from the given details
  * @param {number} x         X in units (not in pixel coordinates), tile units.
@@ -88,12 +90,13 @@ module collision_body {
 
     /** 
      * Checks if any bodies in the bodies collection are right on top of given Body. Blocking upward motion.
-     * @param {PhysicsBody}   body   
-     * @param {PhysicsBody[]} bodies Set of bodies to check body against
+     * @param {CollisionBody}   body   
+     * @param {CollisionBody[]} bodies Set of bodies to check body against
      * @returns {boolean} returns true when nothing is on top.
      */
-    export function nothingOnTop(body: PhysicsBody, bodies: PhysicsBody[]) {
+    export function nothingOnTop(body: CollisionBody, bodies: CollisionBody[]) {
         // when .some returns false -- nothing was found above, we return true as nothing is above
+        var yLevelAbove: number = body.tile.y - 1;
         return bodies.some(b => b.tile.y === yLevelAbove && b.tile.x === body.tile.x) === false;
     }
 }
