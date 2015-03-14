@@ -45,6 +45,15 @@ module collision_body {
     }
 
     /**
+     * Creates CollisionBodies from Tile objects. Note that the _uniqueId for Tiles is always -1.
+     * @param {Phaser.Tile[]} tiles
+     * @returns {CollisionBody[]} CollisionBody objects
+     */
+    export function fromTiles(tiles: Phaser.Tile[]) {
+        return tiles.map(t => collisionBody(t.x, t.y, 0, 0, -1));
+    }
+
+    /**
      * Creates CollisionBody from PhysicsBody object.
      * @param {PhysicsBody} body
      * @returns {CollisionBody} CollisionBody object.
