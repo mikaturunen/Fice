@@ -32,10 +32,10 @@ function getAndResolveOverlappingTile() {
             if (tile) {
                 if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
+                    console.log(" I CAN CLIMB :3");
                 } 
-                    // Block movement
-                    physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
-                
+                // Block movement
+                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
             }
             return tile;
         })();
@@ -49,10 +49,10 @@ function getAndResolveOverlappingTile() {
             if (tile) {
                 if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
+                    console.log(" I CAN CLIMB :3");
                 }
-                    // Block movement
-                    physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
-                
+                // Block movement
+                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
             }
             return tile;
         })();
@@ -66,9 +66,10 @@ function getAndResolveOverlappingTile() {
             if (tile) {
                  if (canClimb(physics.currentlyMovingBody, tile)) {
                     // Make sure player climbs the tile
+                    console.log(" I CAN CLIMB :3");
                 } 
-                    // Block movement
-                    physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
+                // Block movement
+                physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
                 
             }
             return tile;
@@ -127,9 +128,10 @@ function calculateNextForBody(body: PhysicsBody) {
 
     // which direction to place the next position at
     if (utilities.isDirectionRight(body)) {
+
         body.next.x = (targetCollisionBody.tile.x + 1) * constant.TileSize.width;
         body.next.y = targetCollisionBody.coordinates.y;
-        console.log("Calculating next for body moving right..", body.next.x);
+        console.log("Calculating next for body moving right..", (body.next.x/32));
     } else if (utilities.isDirectionLeft(body)) {
         body.next.x = (targetCollisionBody.tile.x - 1) * constant.TileSize.width;
         body.next.y = targetCollisionBody.coordinates.y;
@@ -184,26 +186,27 @@ function checkCollision(targetBody: PhysicsBody) {
 }
 
 function areBodiesOverlapping(current: CollisionBody, target: CollisionBody) {
-    if (current.coordinates.y > target.coordinates.y + target.heigth) {
+    if (current.coordinates.y >= target.coordinates.y + target.heigth) {
         // current is UNDER the target box
         return false; 
     } 
 
-    if (current.coordinates.y + current.heigth < target.coordinates.y) {
+    if (current.coordinates.y + current.heigth <= target.coordinates.y) {
         return false;
         // Current is ABOVE the target box
     }
 
-    if (current.coordinates.x > target.coordinates.x + target.heigth) {
+    if (current.coordinates.x >= target.coordinates.x + target.width) {
         return false;
         // Current is on the RIGHT side of the target box
     }
 
-    if (current.coordinates.x + current.width < target.coordinates.x) {
+    if (current.coordinates.x + current.width <= target.coordinates.x) {
         return false; 
         // Currenty is on the LEFT side of the target box
     }
 
+    console.log("overlapping ", current, target);
     // We are overlapping :{
     return true;
 }
@@ -325,7 +328,6 @@ function canFallBody(current: PhysicsBody) {
         var targetBody: CollisionBody = collisionBody.fromPhysicsBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
             if (current.tiledType === "FIRE" && target.tiledType === "FIRE") {
-                console.log("fire and fire");
                 canFall = false;
             } else if (target.tiledType !== "FIRE") {
                 // If it's fire, we allow other bodies to fall on it and DIE!
@@ -389,10 +391,12 @@ module physics {
 
     export function stopCurrent() {
         if (!physics.currentlyMovingBody) {
+            console.log("nothing to stop");
             return;
         }
 
         physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
+        console.log("stopped ", physics.currentlyMovingBody.tiledType, ", velocity: " + physics.currentlyMovingBody.velocity);
     }
 
     export function getBody(x: number, y: number) {
@@ -467,6 +471,8 @@ module physics {
             } 
         }
 
+        // TODO apply new velocity each loop with delta and THEN add it on body; currently add delta once and keep adding it to body (delta changes each time)
+
         for (var index: number = 0; index < physics.physicsBodies.length; index++) {
             var targetBody: PhysicsBody = physics.physicsBodies[index];
 
@@ -482,6 +488,7 @@ module physics {
                 }
 
                 physics.stopCurrentAndSwap(targetBody);
+                console.log(physics.currentlyMovingBody.tiledType);
                 return;
             }
         }
