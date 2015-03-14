@@ -125,7 +125,7 @@ function move(game: Phaser.Game) {
 }
 
 function calculateNextForBody(body: PhysicsBody) {
-    var targetCollisionBody: CollisionBody = collisionBodyFromPhysicsBody(body);
+    var targetCollisionBody: CollisionBody = collisionBody.fromPhysicsBody(body);
 
     // which direction to place the next position at
     if (utilities.isDirectionRight(body)) {
@@ -173,8 +173,8 @@ function checkCollision(targetBody: PhysicsBody) {
         return false;
     }
 
-    var current: CollisionBody = collisionBodyFromPhysicsBody(physics.currentlyMovingBody);
-    var target: CollisionBody = collisionBodyFromPhysicsBody(targetBody);
+    var current: CollisionBody = collisionBody.fromPhysicsBody(physics.currentlyMovingBody);
+    var target: CollisionBody = collisionBody.fromPhysicsBody(targetBody);
 
     // Physics bodies
     if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
@@ -310,21 +310,21 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
 };
 
 function canFallTile(target: PhysicsBody) {
-    var body = collisionBodyFromPhysicsBody(target);
+    var body = collisionBody.fromPhysicsBody(target);
     var tile = world.getTilePixelXY(body.coordinates.x, body.coordinates.y + constant.TileSize.heigth);
     var canFall: boolean = tile ? false : true;
     return  canFall;
 }
 
 function canFallBody(current: PhysicsBody) {
-    var body = collisionBodyFromPhysicsBody(current);
+    var body = collisionBody.fromPhysicsBody(current);
     var canFall: boolean = true;
 
     // go down one 
     body.tile.y += 1;
 
     physics.physicsBodies.forEach(target => {
-        var targetBody: CollisionBody = collisionBodyFromPhysicsBody(target);
+        var targetBody: CollisionBody = collisionBody.fromPhysicsBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
             if (current.tiledType === "FIRE" && target.tiledType === "FIRE") {
                 console.log("fire and fire");
@@ -341,7 +341,7 @@ function canFallBody(current: PhysicsBody) {
 }
 
 function pointInside(x: number, y: number, target: PhysicsBody) {
-    var body = collisionBodyFromPhysicsBody(target);
+    var body = collisionBody.fromPhysicsBody(target);
     var rect = new Phaser.Rectangle(body.coordinates.x, body.coordinates.y, 32, 32);
     
     return Phaser.Rectangle.contains(rect, x, y);
@@ -352,7 +352,7 @@ function getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     var groups: PhysicsBody[][] = [];
 
     for (var y = 0; y < constant.TotalTilesY; y++) {
-        var group = iceBodies.filter(i => collisionBodyFromPhysicsBody(i).tile.y === y);
+        var group = iceBodies.filter(i => collisionBody.fromPhysicsBody(i).tile.y === y);
 
         if (group.length > 0) {
             groups.push(group);
