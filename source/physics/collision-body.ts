@@ -1,31 +1,39 @@
 "use strict";
 
 /**
+ * Creates the actual CollisionBody from the given details
+ * @param {number} x         X in units (not in pixel coordinates), tile units.
+ * @param {number} y         Y in units (not in pixel coordinates), tile units.
+ * @param {number} velocityX X component of velocity vector
+ * @param {number} velocityY Y component of velocity vector
+ * @param {number} _uniqueId Unique ID of body, -1 always for Tiles
+ */
+function collisionBody(x: number, y: number, velocityX: number, velocityY: number, _uniqueId: number) {
+    return <CollisionBody> {
+        tile: {  
+            x: x,
+            y: y
+        },
+        coordinates: {
+            x: x * constant.TileSize.width,
+            y: y * constant.TileSize.heigth
+        },
+        velocity: { 
+            x: velocityX, 
+            y: velocityY 
+        },
+        width: constant.TileSize.width,
+        heigth: constant.TileSize.heigth,
+        _uniqueId: _uniqueId
+    };
+}
+
+/**
  * module for creating and manipulating CollisionBody objects from other objects.
  * @module collision_body
  */
 module collision_body {
     "use strict";
-
-    function collisionBody(x: number, y: number, velocityX: number, velocityY: number, _uniqueId: number) {
-        return <CollisionBody> {
-            tile: {  
-                x: x,
-                y: y
-            },
-            coordinates: {
-                x: x * constant.TileSize.width,
-                y: y * constant.TileSize.heigth
-            },
-            velocity: { 
-                x: velocityX, 
-                y: velocityY 
-            },
-            width: constant.TileSize.width,
-            heigth: constant.TileSize.heigth,
-            _uniqueId: _uniqueId
-        };
-    }
 
     /**
      * Creates CollisionBody from Tile object. Note that the _uniqueId for Tiles is always -1.
@@ -52,7 +60,7 @@ module collision_body {
     }
 
     /**
-     * Creates CollisionBody from PhysicsBody object.
+     * Creates CollisionBodies from PhysicsBody objects.
      * @param {PhysicsBody} bodies List of bodies to turn at the same time
      * @returns {CollisionBody} CollisionBody object.
      */
