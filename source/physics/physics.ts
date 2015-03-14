@@ -15,8 +15,10 @@ function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
         .concat(collisionBody.fromPhysicsBodies(physics.physicsBodies))
         .concat(collisionBody.fromTiles(world.getAllTiles()));
 
-    return collisionBody.nothingOnTop(collisionBody.fromPhysicsBody(body), bodies) && 
-        collisionBody.nothingOnTop(collisionBody.fromTile(tile), bodies);
+    var nothingOnPlayer = collisionBody.nothingOnTop(collisionBody.fromPhysicsBody(body), bodies);
+    var nothingOnTile = collisionBody.nothingOnTop(collisionBody.fromTile(tile), bodies);
+    console.log("Bodies to check", bodies, nothingOnPlayer, nothingOnTile);
+    return nothingOnPlayer && nothingOnTile;
 }
 
 /** 

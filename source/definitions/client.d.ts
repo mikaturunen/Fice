@@ -5,3 +5,4 @@
 ///<reference path="tile-based-level.d.ts" />
 ///<reference path="physics.d.ts" />
 ///<reference path="DefinitelyTyped/node.d.ts" />
+///<reference path="DefinitelyTyped/lodash.d.ts" />
