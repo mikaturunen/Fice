@@ -65,6 +65,16 @@ module tiles {
             "collision"
         );
     }
+
+    /**
+     * Returns all the tiles on "Collision" layer from the Tiled data.
+     * @Returns {Phaser.Tile[]} List of all tiles
+     */
+    export function getAllTiles() {
+        var width: number = constant.TotalTilesX * constant.TileSize.width;
+        var heigth: number = constant.TotalTilesY * constant.TileSize.heigth;
+        return tiles.layers["collision"].getTiles(0, 0, width, heigth);
+    }
 }
 
 export = tiles;
