@@ -3,6 +3,23 @@ import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
 
+function nothingOnTopOfTile(tile: Phaser.Tile) {
+
+}
+
+function nothingOnTopOfBody(tile: Phaser.Tile) {
+
+}
+
+/**
+ * Tests if the body facing the given Tile can climb on top of it.
+ * @param {PhysicsBody} body That collided with the tile
+ * @param {Phaser.Tile} tile Tile the body collided with
+ */
+function canBlimb(body: PhysicsBody, tile: Phaser.Tile) {
+    return nothingOnTopOfTile(tile) && nothingOnTopOfBody(body);
+}
+
 /** 
  * Finds Tile in the velocity direction and fixes position to it if overlapping
  */
@@ -14,10 +31,16 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
+                if (canClimb()) {
+                    // Make sure player climbs the tile
+                } else {
+                    // Block movement
+                    physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
+                }
             }
             return tile;
         })();
+
     } else if (utilities.isDirectionRight(physics.currentlyMovingBody)) {
         return (() => {
             var x = Math.round(physics.currentlyMovingBody.x + constant.TileSize.width + physics.currentlyMovingBody.velocity.x);
@@ -25,10 +48,16 @@ function getAndResolveOverlappingTile() {
             var tile =  world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
             
             if (tile) {
-                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
+                if (canClimb()) {
+                    // Make sure player climbs the tile
+                } else {
+                    // Block movement
+                    physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
+                }
             }
             return tile;
         })();
+
     } else if (utilities.isDirectionDown(physics.currentlyMovingBody)) {
         return (() => {
             var x = Math.round(physics.currentlyMovingBody.x);
@@ -36,10 +65,16 @@ function getAndResolveOverlappingTile() {
             var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
         
             if (tile) {
-                physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
+                if (canClimb()) {
+                    // Make sure player climbs the tile
+                } else {
+                    // Block movement
+                    physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
+                }
             }
             return tile;
         })();
+
     }
 
     return undefined;
@@ -89,7 +124,7 @@ function move(game: Phaser.Game) {
 }
 
 function calculateNextForBody(body: PhysicsBody) {
-    var targetCollisionBody: CollisionBody = buildCollisionBody(body);
+    var targetCollisionBody: CollisionBody = collisionBodyFromPhysicsBody(body);
 
     // which direction to place the next position at
     if (utilities.isDirectionRight(body)) {
@@ -137,8 +172,8 @@ function checkCollision(targetBody: PhysicsBody) {
         return false;
     }
 
-    var current: CollisionBody = buildCollisionBody(physics.currentlyMovingBody);
-    var target: CollisionBody = buildCollisionBody(targetBody);
+    var current: CollisionBody = collisionBodyFromPhysicsBody(physics.currentlyMovingBody);
+    var target: CollisionBody = collisionBodyFromPhysicsBody(targetBody);
 
     // Physics bodies
     if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
@@ -274,21 +309,21 @@ function findNewCurrentlyMovingBodyThroughGravity(game: Phaser.Game) {
 };
 
 function canFallTile(target: PhysicsBody) {
-    var body = buildCollisionBody(target);
+    var body = collisionBodyFromPhysicsBody(target);
     var tile = world.getTilePixelXY(body.coordinates.x, body.coordinates.y + constant.TileSize.heigth);
     var canFall: boolean = tile ? false : true;
     return  canFall;
 }
 
 function canFallBody(current: PhysicsBody) {
-    var body = buildCollisionBody(current);
+    var body = collisionBodyFromPhysicsBody(current);
     var canFall: boolean = true;
 
     // go down one 
     body.tile.y += 1;
 
     physics.physicsBodies.forEach(target => {
-        var targetBody: CollisionBody = buildCollisionBody(target);
+        var targetBody: CollisionBody = collisionBodyFromPhysicsBody(target);
         if (body.tile.x === targetBody.tile.x && body.tile.y === targetBody.tile.y) {
             if (current.tiledType === "FIRE" && target.tiledType === "FIRE") {
                 console.log("fire and fire");
@@ -305,13 +340,33 @@ function canFallBody(current: PhysicsBody) {
 }
 
 function pointInside(x: number, y: number, target: PhysicsBody) {
-    var body = buildCollisionBody(target);
+    var body = collisionBodyFromPhysicsBody(target);
     var rect = new Phaser.Rectangle(body.coordinates.x, body.coordinates.y, 32, 32);
     
     return Phaser.Rectangle.contains(rect, x, y);
 }
 
-function buildCollisionBody(body: PhysicsBody) {
+function collisionBodyFromTile(Tile: Phaser.Tile) {
+    return <CollisionBody> {
+        tile: {  
+            x: tile.x,
+            y: tily.y
+        },
+        coordinates: {
+            x: tile.x * constant.TileSize.width,
+            y: tile.y * constant.TileSize.heigth
+        },
+        velocity: { 
+            x: 0, 
+            y: 0 
+        },
+        width: constant.TileSize.width,
+        heigth: constant.TileSize.heigth,
+        _uniqueId: -1
+    };
+}
+
+function collisionBodyFromPhysicsBody(body: PhysicsBody) {
     return <CollisionBody> {
         tile: {  
             x: Math.round(body.x / constant.TileSize.width),
@@ -335,7 +390,7 @@ function getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     var groups: PhysicsBody[][] = [];
 
     for (var y = 0; y < constant.TotalTilesY; y++) {
-        var group = iceBodies.filter(i => buildCollisionBody(i).tile.y === y);
+        var group = iceBodies.filter(i => collisionBodyFromPhysicsBody(i).tile.y === y);
 
         if (group.length > 0) {
             groups.push(group);
