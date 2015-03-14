@@ -2,6 +2,7 @@
 import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
+import collisionBody = require("./collision-body");
 
 function nothingOnTopOfTile(tile: Phaser.Tile) {
 
@@ -346,45 +347,6 @@ function pointInside(x: number, y: number, target: PhysicsBody) {
     return Phaser.Rectangle.contains(rect, x, y);
 }
 
-function collisionBodyFromTile(Tile: Phaser.Tile) {
-    return <CollisionBody> {
-        tile: {  
-            x: tile.x,
-            y: tily.y
-        },
-        coordinates: {
-            x: tile.x * constant.TileSize.width,
-            y: tile.y * constant.TileSize.heigth
-        },
-        velocity: { 
-            x: 0, 
-            y: 0 
-        },
-        width: constant.TileSize.width,
-        heigth: constant.TileSize.heigth,
-        _uniqueId: -1
-    };
-}
-
-function collisionBodyFromPhysicsBody(body: PhysicsBody) {
-    return <CollisionBody> {
-        tile: {  
-            x: Math.round(body.x / constant.TileSize.width),
-            y: Math.round(body.y / constant.TileSize.heigth)
-        },
-        coordinates: {
-            x: body.x,
-            y: body.y,
-        },
-        velocity: {
-            x: body.velocity.x,
-            y: body.velocity.y
-        },
-        width: constant.TileSize.width,
-        heigth: constant.TileSize.heigth,
-        _uniqueId: body._uniqueId
-    };
-}
 
 function getIceBodiesGroupByY(iceBodies: PhysicsBody[]) {
     var groups: PhysicsBody[][] = [];
