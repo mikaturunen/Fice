@@ -99,7 +99,6 @@ module collision_body {
         var yLevelAbove: number = body.tile.y - 1;
 
         for (var i = 0; i < bodies.length ; i++) {
-            console.log("body x:", body.tile.x, bodies[i].tile.x, "body y:", yLevelAbove, bodies[i].tile.y);
             if (bodies[i].tile.y === yLevelAbove && bodies[i].tile.x === body.tile.x) {
                 return true;
             }
