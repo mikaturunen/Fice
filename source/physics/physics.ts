@@ -70,7 +70,15 @@ function getAndResolveOverlappingTile() {
     return undefined;
 }
 
+/**
+ * Moves the currently moving body in the wanted direction.
+ * @param {Phaser.Game} game Game object from Phaser.
+ */
 function move(game: Phaser.Game) {
+    if (!physics.currentlyMovingBody) {
+        return;
+    }
+
     var tile = getAndResolveOverlappingTile();
     if (tile) {
         if (canClimb(physics.currentlyMovingBody, tile)) {
@@ -115,6 +123,10 @@ function move(game: Phaser.Game) {
             console.log("Calculating new next for body..");
             calculateNextForBody(physics.currentlyMovingBody);
         }
+    }
+
+    if (!isMoving()) {
+        physics.currentlyMovingBody = undefined;
     }
 }
 
@@ -365,6 +377,80 @@ function canFall(target: PhysicsBody) {
     return false;
 }
 
+/**
+ * Finds a body or bodies that can be put into motion through gravity. Requires the bodies to be in place. Mimics
+ * Solomon's No Kagi 2's behavior as much as it can in this respect.
+ */
+function applyGravityOnMotionlessBodies() {
+    // When no body is in motion, try finding a body we can put into motion through gravity
+    if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
+        var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
+        var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
+
+        // Iterate ice blocks and see if they will start falling
+        var iceGroups: PhysicsBody[][] = getIceBodiesGroupByY(iceBodies);
+        iceGroups.forEach((iceBodiesOnSameLevel: PhysicsBody[]) => {
+            // TODO connect bodies
+            if (iceBodiesOnSameLevel.every(canFall)) {
+                iceBodiesOnSameLevel.forEach(target => {
+                    // The target body has nothing under it, we can make it fall - no body or tile blocking 
+                    physics.stopCurrentAndSwap(target);
+                    physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                    physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+                    physics.currentlyMovingBody.velocity.x = 0;
+
+                    console.log("ICE BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
+                });
+            }
+        });
+
+        // No ice blocks moving
+        if (currentlyIceBodies.length <= 0) {
+            // Iterate rest of the bodies
+            otherBodies.forEach(target => {
+                if (!physics.currentlyMovingBody && canFall(target)) {
+                    // The target body has nothing under it, we can make it fall - no body or tile blocking 
+                    physics.stopCurrentAndSwap(target);
+                    physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
+                    physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+                    physics.currentlyMovingBody.velocity.x = 0;
+
+                    console.log("BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
+                }
+            });
+        } 
+    }
+}
+
+/**
+ * Checks for collisions for all physics bodies.
+ */
+function checkCollisionForAllPhysicsBodies() {
+     for (var index: number = 0; index < physics.physicsBodies.length; index++) {
+        var targetBody: PhysicsBody = physics.physicsBodies[index];
+
+        if (checkCollision(targetBody)) {
+            console.log("Collision between body id's:", physics.currentlyMovingBody._uniqueId, targetBody._uniqueId);
+
+            console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ",", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
+            console.log("Target :", Math.round(targetBody.x / 32), ",", Math.round(targetBody.y / 32), targetBody._uniqueId);
+
+            if (physics.currentlyMovingBody.tiledType === "PLAYER" && targetBody.tiledType === "ICE") {
+                targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
+                calculateNextForBody(targetBody);
+            }
+
+            physics.stopCurrentAndSwap(targetBody);
+            console.log(physics.currentlyMovingBody.tiledType);
+            return;
+        }
+    }
+
+    if (physics.currentlyMovingBody && physics.currentlyMovingBody.isDead) {
+        physics.currentlyMovingBody = undefined;
+    }
+}
+
 module physics {
     // Generally we allow only one body to move at a time 
     export var currentlyMovingBody: PhysicsBody;
@@ -414,83 +500,17 @@ module physics {
     }
 
     export function update(game: Phaser.Game) {
+        // TODO apply new velocity each loop with delta and THEN add it on body; currently add delta once and keep adding it to body (delta changes each time)
+
+
         // Sort the bodies into an order where the first is the one with the highest Y, so we start applying physics
         // from bottom to top from the screens perspective and the "one object at a time"-login works and that's how
         // the items fall in the original so :o
         physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
 
-        if (physics.currentlyMovingBody) {
-            move(game);
-
-            if (!isMoving()) {
-                physics.currentlyMovingBody = undefined;
-            }
-        }
-
-        // When no body is in motion, try finding a body we can put into motion through gravity
-        if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
-            var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
-            var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
-
-            // Iterate ice blocks and see if they will start falling
-            var iceGroups: PhysicsBody[][] = getIceBodiesGroupByY(iceBodies);
-            iceGroups.forEach((iceBodiesOnSameLevel: PhysicsBody[]) => {
-                // TODO connect bodies
-                if (iceBodiesOnSameLevel.every(canFall)) {
-                    iceBodiesOnSameLevel.forEach(target => {
-                        // The target body has nothing under it, we can make it fall - no body or tile blocking 
-                        physics.stopCurrentAndSwap(target);
-                        physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
-                        physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
-                        physics.currentlyMovingBody.velocity.x = 0;
-
-                        console.log("I BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
-                    });
-                }
-            });
-
-            // No ice blocks moving
-            if (currentlyIceBodies.length <= 0) {
-                // Iterate rest of the bodies
-                otherBodies.forEach(target => {
-                    if (!physics.currentlyMovingBody && canFall(target)) {
-                        // The target body has nothing under it, we can make it fall - no body or tile blocking 
-                        physics.stopCurrentAndSwap(target);
-                        physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
-                        physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
-                        physics.currentlyMovingBody.velocity.x = 0;
-
-                        console.log("O BODY FOUND : " + physics.currentlyMovingBody._uniqueId, physics.currentlyMovingBody.tiledType, physics.currentlyMovingBody.velocity);
-                    }
-                });
-            } 
-        }
-
-        // TODO apply new velocity each loop with delta and THEN add it on body; currently add delta once and keep adding it to body (delta changes each time)
-
-        for (var index: number = 0; index < physics.physicsBodies.length; index++) {
-            var targetBody: PhysicsBody = physics.physicsBodies[index];
-
-            if (checkCollision(targetBody)) {
-                console.log("Collision between body id's:", physics.currentlyMovingBody._uniqueId, targetBody._uniqueId);
-
-                console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ",", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
-                console.log("Target :", Math.round(targetBody.x / 32), ",", Math.round(targetBody.y / 32), targetBody._uniqueId);
-
-                if (physics.currentlyMovingBody.tiledType === "PLAYER" && targetBody.tiledType === "ICE") {
-                    targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
-                    calculateNextForBody(targetBody);
-                }
-
-                physics.stopCurrentAndSwap(targetBody);
-                console.log(physics.currentlyMovingBody.tiledType);
-                return;
-            }
-        }
-
-        if (physics.currentlyMovingBody && physics.currentlyMovingBody.isDead) {
-            physics.currentlyMovingBody = undefined;
-        }
+        move(game);
+        applyGravityOnMotionlessBodies();
+        checkCollisionForAllPhysicsBodies();
     }
 
     /** 
