@@ -73,7 +73,10 @@ module tiles {
     export function getAllTiles() {
         var width: number = constant.TotalTilesX * constant.TileSize.width;
         var heigth: number = constant.TotalTilesY * constant.TileSize.heigth;
-        return tiles.layers["collision"].getTiles(0, 0, width, heigth);
+        var allCollisionTiles = tiles.layers["collision"].getTiles(0, 0, width, heigth, true);
+        console.log("Found tiles", allCollisionTiles.length, "on collision tile layer");
+        console.log(allCollisionTiles);
+        return allCollisionTiles;
     }
 }
 

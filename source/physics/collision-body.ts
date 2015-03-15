@@ -94,7 +94,7 @@ module collision_body {
      * @param {CollisionBody[]} bodies Set of bodies to check body against
      * @returns {boolean} returns true when nothing is on top.
      */
-    export function nothingOnTop(body: CollisionBody, bodies: CollisionBody[]) {
+    export function isEmptyTop(body: CollisionBody, bodies: CollisionBody[]) {
         // when .some returns false -- nothing was found above, we return true as nothing is above
         var yLevelAbove: number = body.tile.y - 1;
 
