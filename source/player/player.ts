@@ -102,6 +102,9 @@ module player {
             return;
         }
 
+        // TODO instead of setting velocity here, give direction and then in physics module we give it the delta
+        // velocity each loop it deservers, with love. 
+
         var x: number;
         if (input.left.isDown) {
             console.log("left");
