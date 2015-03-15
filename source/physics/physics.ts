@@ -15,10 +15,10 @@ function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
         .concat(collisionBody.fromPhysicsBodies(physics.physicsBodies))
         .concat(collisionBody.fromTiles(world.getAllTiles()));
 
-    var nothingOnPlayer = collisionBody.nothingOnTop(collisionBody.fromPhysicsBody(body), bodies);
-    var nothingOnTile = collisionBody.nothingOnTop(collisionBody.fromTile(tile), bodies);
-    console.log("Bodies to check", bodies, nothingOnPlayer, nothingOnTile);
-    return nothingOnPlayer && nothingOnTile;
+    var aboveBody = collisionBody.isEmptyTop(collisionBody.fromPhysicsBody(body), bodies);
+    var aboveTile = collisionBody.isEmptyTop(collisionBody.fromTile(tile), bodies);
+    console.log("canClimb, above body empty", aboveBody, "above tile empty", aboveTile);
+    return aboveBody && aboveTile;
 }
 
 /** 
@@ -75,6 +75,8 @@ function move(game: Phaser.Game) {
     if (tile) {
         if (canClimb(physics.currentlyMovingBody, tile)) {
             console.log("CAN CLIMB AHOY! :D");
+            physics.currentlyMovingBody.x = tile.x * constant.TileSize.width;
+            physics.currentlyMovingBody.y = (tile.y - 1) * constant.TileSize.heigth;
         }
         console.log("overlap, stop");
         physics.stopCurrent();

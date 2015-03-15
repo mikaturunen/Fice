@@ -100,11 +100,13 @@ module collision_body {
 
         for (var i = 0; i < bodies.length ; i++) {
             if (bodies[i].tile.y === yLevelAbove && bodies[i].tile.x === body.tile.x) {
-                return true;
+                // Early quit condition; we found something above and thus cannot move tsay it's empty
+                console.log("Body to test: ", body, ", body that matched:", bodies[i]);
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 }
 
