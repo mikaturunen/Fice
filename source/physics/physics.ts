@@ -125,7 +125,7 @@ function move(game: Phaser.Game) {
         }
     }
 
-    if (!isMoving()) {
+    if (!physics.isMoving()) {
         physics.currentlyMovingBody = undefined;
     }
 }
@@ -380,8 +380,9 @@ function canFall(target: PhysicsBody) {
 /**
  * Finds a body or bodies that can be put into motion through gravity. Requires the bodies to be in place. Mimics
  * Solomon's No Kagi 2's behavior as much as it can in this respect.
+ * @param {Phaser.Game} game Game object from Phaser
  */
-function applyGravityOnMotionlessBodies() {
+function applyGravityOnMotionlessBodies(game: Phaser.Game) {
     // When no body is in motion, try finding a body we can put into motion through gravity
     if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
         var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
@@ -405,7 +406,7 @@ function applyGravityOnMotionlessBodies() {
         });
 
         // No ice blocks moving
-        if (currentlyIceBodies.length <= 0) {
+        if (physics.currentlyIceBodies.length <= 0) {
             // Iterate rest of the bodies
             otherBodies.forEach(target => {
                 if (!physics.currentlyMovingBody && canFall(target)) {
@@ -424,8 +425,9 @@ function applyGravityOnMotionlessBodies() {
 
 /**
  * Checks for collisions for all physics bodies.
+ * @param {Phaser.Game} game Game object from Phaser.
  */
-function checkCollisionForAllPhysicsBodies() {
+function checkCollisionForAllPhysicsBodies(game: Phaser.Game) {
      for (var index: number = 0; index < physics.physicsBodies.length; index++) {
         var targetBody: PhysicsBody = physics.physicsBodies[index];
 
@@ -509,8 +511,8 @@ module physics {
         physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
 
         move(game);
-        applyGravityOnMotionlessBodies();
-        checkCollisionForAllPhysicsBodies();
+        applyGravityOnMotionlessBodies(game);
+        checkCollisionForAllPhysicsBodies(game);
     }
 
     /** 
