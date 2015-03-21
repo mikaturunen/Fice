@@ -53,7 +53,7 @@ gulp.task(taskBrowserifyClient, function() {
 
     var bundle = function() {
         return bundler
-            .plugin("tsify", { noImplicitAny: true, removeComments: true, declarationFiles: true })
+        //    .plugin("tsify", { noImplicitAny: true, removeComments: true, declarationFiles: true })
             .bundle()
             .pipe(source( path.normalize("index.min.js") ))
             .pipe(buffer())
@@ -67,7 +67,6 @@ gulp.task(taskBrowserifyClient, function() {
 // defining the tasks gulp runs -- in default we do basically all the tasks in one
 gulp.task("default", function() {
     sequence(
-            [ taskTslintClient, taskBrowserifyClient ],
-            taskBrowserifyClient
+            [ taskTslintClient, taskBrowserifyClient ]
         );
 });
