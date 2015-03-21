@@ -21,11 +21,11 @@ function setAnimationFrames() {
     }
 
     // Player actively moving, inspect velocity and decide on animation based on that.
-    if (utilities.isDirectionLeft(player.sprite.body)) {
+    if (constant.isDirectionLeft(player.sprite.body.x)) {
         player.sprite.animations.play("left", constantAnimationSpeed, true);
-    } else if (utilities.isDirectionRight(player.sprite.body)) {
+    } else if (constant.isDirectionRight(player.sprite.body.x)) {
         player.sprite.animations.play("right", constantAnimationSpeed, true);
-    } else if (utilities.isDirectionDown(player.sprite.body)) {
+    } else if (constant.isDirectionDown(player.sprite.body.y)) {
 
         if (isFacingLeft) {
             player.sprite.animations.play("fallingLeft", constantAnimationSpeed, true);

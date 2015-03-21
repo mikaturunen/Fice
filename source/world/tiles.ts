@@ -1,6 +1,7 @@
 "use strict";
 
 import constant = require("../utilities/constants");
+import utilities = require("../utilities/utilities");
 import path = require("path");
 
 var levels: any = {
@@ -74,6 +75,44 @@ module tiles {
         var width: number = constant.TotalTilesX * constant.TileSize.width;
         var heigth: number = constant.TotalTilesY * constant.TileSize.heigth;
         return tiles.layers["collision"].getTiles(0, 0, width, heigth, true);
+    }
+
+    /** 
+     * Attempts to find a tile from the velocity indicated direction
+     * @param {PhysicsBody} body Body to inspect for Velocity
+     * @Returns {Phaser.Tile} Tile if there is a blocking tile. Undefined if no tile can be found.
+     */
+    export function getTileBasedOnPositionAndDirection(body: PhysicsBody) {
+        if (constant.isDirectionLeft(body.velocity.x)) {
+            // Get tile on left
+            return tiles.map.getTileWorldXY(
+                    Math.round(body.x - body.velocity.x), 
+                    Math.round(body.y), 
+                    constant.TileSize.width, 
+                    constant.TileSize.heigth, 
+                    "collision"
+                );
+        } else if (constant.isDirectionRight(body.velocity.x)) {
+            // Get tile on right
+            return tiles.map.getTileWorldXY(
+                    Math.round(body.x + constant.TileSize.width + body.velocity.x), 
+                    Math.round(body.y), 
+                    constant.TileSize.width, 
+                    constant.TileSize.heigth, 
+                    "collision"
+                );
+        } else if (constant.isDirectionDown(body.velocity.x)) {
+            // Get tile below
+            return tiles.map.getTileWorldXY(
+                    Math.round(body.x), 
+                    Math.round(body.y + constant.TileSize.heigth + body.velocity.y), 
+                    constant.TileSize.width, 
+                    constant.TileSize.heigth, 
+                    "collision"
+                );
+        }
+
+        return undefined;
     }
 }
 

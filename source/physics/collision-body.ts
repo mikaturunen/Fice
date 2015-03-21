@@ -108,6 +108,16 @@ module collision_body {
 
         return true;
     }
+
+    /** 
+     * Sets the current's position to match the body's position. Commonly used after collision resolving.
+     * @param {PhysicsBody}   current Current body to set into given position.
+     * @param {CollisionBody} body    Coordinates property read and set from body.
+     */
+    export function setPosition(current: PhysicsBody, body: CollisionBody) {
+        current.x = body.coordinates.x;
+        current.y = body.coordinates.y;
+    }
 }
 
 export = collision_body;

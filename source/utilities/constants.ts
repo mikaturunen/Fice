@@ -30,6 +30,12 @@ module constants {
     /** @tpye {number} Velocity treshold - when something moves slower than this, it stops */
     export var VelocityTreshold: number = 0.25;
 
+    // NOTE using the var declaration for 'export function <name>()' instead here as it allows us to declare
+    //      extremely short far-arrow notation function callbacks. Simply making three line functions into a single
+    //      line function ;)
+    export var isDirectionLeft  = (x: number): boolean => x <= -constants.VelocityTreshold;
+    export var isDirectionRight = (x: number): boolean => x >= constants.VelocityTreshold;
+    export var isDirectionDown  = (y: number): boolean => y >= constants.VelocityTreshold;
 };
 
 export = constants;

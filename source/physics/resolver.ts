@@ -4,13 +4,17 @@ import player = require("../player/player");
 import ice = require("../ice/ice");
 import fires = require("../fires/fire");
 import world = require("../world/tiles");
+import collisionBody = require("./collision-body");
 import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 
 function killBodies(current: PhysicsBody, target: PhysicsBody) {
-    if (current.tiledType === "FIRE") {
-        target.isDead = true;
-        current.isDead = target.tiledType === "ICE";
+    if (current.tiledType === "PLAYER" || current.tiledType === "ICE") {
+        if (target.tiledType === "FIRE") {
+            current.isDead = true;
+            target.isDead = current.tiledType === "ICE";
+            console.log("FIRE FOUND", target.tiledType);
+        }
     }
 }
 
@@ -80,76 +84,69 @@ module resolver {
         console.log("Player dies on fire.");
         player.death();
     };
-
-    export function buildCollisionBody(body: PhysicsBody) {
-        return <CollisionBody> {
-            tile: {  
-                x: Math.round(body.x / constant.TileSize.width),
-                y: Math.round(body.y / constant.TileSize.heigth)
-            },
-            coordinates: {
-                x: body.x,
-                y: body.y,
-            },
-            velocity: {
-                x: body.velocity.x,
-                y: body.velocity.y
-            },
-            width: constant.TileSize.width,
-            heigth: constant.TileSize.heigth,
-            _uniqueId: body._uniqueId,
-            tiledType: body.tiledType
-        };
-    }
-   
-    export function resolveCollision(
+  
+    /**
+     * Attempts to resolve the collision situation.
+     * @param {PhysicsBody} current Body colliding
+     * @param {PhysicsBody} target  Body collided with
+     * @returns {boolean} True when collision resolving steps 
+     */
+    export function collision(
             current: PhysicsBody, 
             target: PhysicsBody
         ) {
 
-        currentBody = resolver.buildCollisionBody(current);
-        targetBody = resolver.buildCollisionBody(target);
-
-        if (areBodiesOverlapping(currentBody, targetBody)) {
-            return false;
-        }
+        currentBody = collisionBody.fromPhysicsBody(current);
+        targetBody = collisionBody.fromPhysicsBody(target);
 
         if (currentBody._uniqueId === target._uniqueId || current._uniqueId === target._uniqueId) {
             console.log("Unique ids match: ", current, currentBody, target);
+            // Fow some reason body is trying to collide against itself, no collision
             return false;
         }
 
-        // NOTE this is stupidly simple but enough for this game
-        
-        // Pull the bodies apart based on velocity
-        if (utilities.isDirectionLeft(current) &&
-            currentBody.tile.y === targetBody.tile.y) {
-            console.log("LLL X,Y -- X,Y:", currentBody.tile.x,",", currentBody.tile.y,"--", targetBody.tile.x,",",targetBody.tile.y);
-            // is moving from right to left, need to pull to right 
-            current.x = targetBody.coordinates.x + targetBody.width;
-            killBodies(current, target);
-            return true;
-        } else if(utilities.isDirectionRight(current) &&
-            currentBody.tile.y === targetBody.tile.y) {
+        if (!areBodiesOverlapping(currentBody, targetBody)) {
+            // No collision
+            return false;
+        }
 
-            console.log("RRR X,Y -- X,Y:", currentBody.tile.x,",", currentBody.tile.y,"--", targetBody.tile.x,",",targetBody.tile.y);
-            // is moving from left to right, need to pull to right
-            current.x = targetBody.coordinates.x - targetBody.width;
-            return true;
-        } else if(utilities.isDirectionDown(current) &&
-            currentBody.tile.x === targetBody.tile.x &&
-            current.y + currentBody.heigth >= targetBody.coordinates.y) {
-            
-            console.log("DDD X,Y -- X,Y:", currentBody.tile.x,",", currentBody.tile.y,"--", targetBody.tile.x,",",targetBody.tile.y);
-            // is falling, need to pull up
-            current.y = targetBody.coordinates.y - targetBody.heigth;
-            return true;
-        } 
+        var newPosition = pullBodiesApart(currentBody, targetBody); 
+        collisionBody.setPosition(current, newPosition);       
 
-        // No resolving required
-        return false;
+        // Resolving required -- the bodies collided
+        return true;
     }
 
+    /**
+     * Should only be called when it's already confirmed that the bodies are overlapping and require pulling apart.
+     * Super simple CollisionBody collision resolver. Nothing too fancy.
+     * @param {CollisionBody} current Body colliding. Gets pulled "out of" target.
+     * @param {CollisionBody} target  Body being collided with.
+     */
+    export function pullBodiesApart(current: CollisionBody, target: CollisionBody)  {
+        // Pull the bodies apart based on velocity
+        if (constant.isDirectionLeft(current.velocity.x) &&
+            current.tile.y === target.tile.y) {
+            console.log("LLL X,Y -- X,Y:", current.tile.x,",", current.tile.y,"--", target.tile.x,",",target.tile.y);
+            // is moving from right to left, need to pull to right 
+            current.coordinates.x = target.coordinates.x + target.width;
+        } else if(constant.isDirectionRight(current.velocity.x) &&
+            current.tile.y === target.tile.y) {
+
+            console.log("RRR X,Y -- X,Y:", current.tile.x,",", current.tile.y,"--", target.tile.x,",",target.tile.y);
+            // is moving from left to right, need to pull to right
+            current.coordinates.x = target.coordinates.x - target.width;
+        } else if(constant.isDirectionDown(current.velocity.y) &&
+            current.tile.x === target.tile.x &&
+            current.coordinates.y + current.heigth >= target.coordinates.y) {
+            
+            console.log("DDD X,Y -- X,Y:", current.tile.x,",", current.tile.y,"--", target.tile.x,",",target.tile.y);
+            // is falling, need to pull up
+            current.coordinates.y = target.coordinates.y - target.heigth;
+        } 
+
+        return current;
+    }
 }
 
 export = resolver;

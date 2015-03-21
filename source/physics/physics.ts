@@ -3,7 +3,7 @@ import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
 import collisionBody = require("./collision-body");
-import resolver = require("./resolver");
+import resolve = require("./resolver");
 
 /**
  * Tests if the body facing the given Tile can climb on top of it.
@@ -22,55 +22,6 @@ function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
     return aboveBody && aboveTile;
 }
 
-/** 
- * Finds Tile in the velocity direction and fixes position to it if overlapping
- */
-function getAndResolveOverlappingTile() {
-    if (utilities.isDirectionLeft(physics.currentlyMovingBody)) {
-        return (() => {
-            var x = Math.round(physics.currentlyMovingBody.x - physics.currentlyMovingBody.velocity.x);
-            var y = Math.round(physics.currentlyMovingBody.y);
-            var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
-            
-            if (tile) {
-                // Block movement
-                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) + constant.TileSize.width;
-            }
-            return tile;
-        })();
-
-    } else if (utilities.isDirectionRight(physics.currentlyMovingBody)) {
-        return (() => {
-            var x = Math.round(physics.currentlyMovingBody.x + constant.TileSize.width + physics.currentlyMovingBody.velocity.x);
-            var y = Math.round(physics.currentlyMovingBody.y);
-            var tile =  world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
-            
-            if (tile) {
-                // Block movement
-                physics.currentlyMovingBody.x = (tile.x * constant.TileSize.width) - constant.TileSize.width;
-            }
-            return tile;
-        })();
-
-    } else if (utilities.isDirectionDown(physics.currentlyMovingBody)) {
-        return (() => {
-            var x = Math.round(physics.currentlyMovingBody.x);
-            var y = Math.round(physics.currentlyMovingBody.y + constant.TileSize.heigth + physics.currentlyMovingBody.velocity.y);
-            var tile = world.map.getTileWorldXY(x, y, constant.TileSize.width, constant.TileSize.heigth, "collision");
-        
-            if (tile) {
-                // Block movement
-                physics.currentlyMovingBody.y = (tile.y * constant.TileSize.heigth) - constant.TileSize.heigth;
-                
-            }
-            return tile;
-        })();
-
-    }
-
-    return undefined;
-}
-
 /**
  * Moves the currently moving body in the wanted direction.
  * @param {Phaser.Game} game Game object from Phaser.
@@ -80,8 +31,9 @@ function move(game: Phaser.Game) {
         return;
     }
 
-    var tile = getAndResolveOverlappingTile();
+    var tile = world.getTileBasedOnPositionAndDirection(physics.currentlyMovingBody);
     if (tile) {
+
         if (canClimb(physics.currentlyMovingBody, tile)) {
             console.log("CAN CLIMB AHOY! :D");
             physics.currentlyMovingBody.x = tile.x * constant.TileSize.width;
@@ -95,7 +47,7 @@ function move(game: Phaser.Game) {
     physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
 
     // Stops the movement if the moving body has reached it's ending position
-    if (!utilities.isDirectionDown(physics.currentlyMovingBody) && 
+    if (!constant.isDirectionDown(physics.currentlyMovingBody.velocity.y) && 
         physics.currentlyMovingBody.tiledType === "PLAYER" && 
         utilities.onNextPosition(physics.currentlyMovingBody)) {
 
@@ -105,7 +57,7 @@ function move(game: Phaser.Game) {
         // TODO because of the below lines the movement is jerky! FIX!
         physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
         physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
-    } else if (!utilities.isDirectionDown(physics.currentlyMovingBody) && 
+    } else if (!constant.isDirectionDown(physics.currentlyMovingBody.velocity.y) && 
         utilities.onNextPosition(physics.currentlyMovingBody)) {
 
         // Entity reached next position, check if falls and otherwise recalculate new next
@@ -135,12 +87,12 @@ function calculateNextForBody(body: PhysicsBody) {
     var targetCollisionBody: CollisionBody = collisionBody.fromPhysicsBody(body);
 
     // which direction to place the next position at
-    if (utilities.isDirectionRight(body)) {
+    if (constant.isDirectionRight(body.velocity.x)) {
 
         body.next.x = (targetCollisionBody.tile.x + 1) * constant.TileSize.width;
         body.next.y = targetCollisionBody.coordinates.y;
         console.log("Calculating next for body moving right..", (body.next.x/32));
-    } else if (utilities.isDirectionLeft(body)) {
+    } else if (constant.isDirectionLeft(body.velocity.x)) {
         body.next.x = (targetCollisionBody.tile.x - 1) * constant.TileSize.width;
         body.next.y = targetCollisionBody.coordinates.y;
         console.log("Calculating next for body moving left..", body.next.x);
@@ -167,37 +119,6 @@ function recursiveFindFirstTileUnderBody(x: number, y: number, recursion: number
     }
 
     return recursiveFindFirstTileUnderBody(x, y + 1, recursion + 1);
-}
-
-/** 
- * Checks collision between two PhysicsBody objects. Current one being the one hitting target.
- * @param {PhysicsBody} current 
- * @param {PhysicsBody} target
- */
-function checkCollision(targetBody: PhysicsBody) {
-    if (!physics.currentlyMovingBody || 
-        targetBody._uniqueId === physics.currentlyMovingBody._uniqueId) {
-
-        return false;
-    }
-
-    // Physics bodies
-    if (resolver.resolveCollision(physics.currentlyMovingBody, targetBody)) {
-        killBodies(physics.currentlyMovingBody, targetBody);
-        return true;
-    }
-
-    return false;
-}
-
-function killBodies(current: PhysicsBody, target: PhysicsBody) {
-    if (current.tiledType === "PLAYER" || current.tiledType === "ICE") {
-        if (target.tiledType === "FIRE") {
-            current.isDead = true;
-            target.isDead = current.tiledType === "ICE";
-            console.log("FIRE FOUND", target.tiledType);
-        }
-    }
 }
 
 function getBodyBelow(body?: PhysicsBody) {
@@ -363,23 +284,40 @@ function applyGravityOnMotionlessBodies(game: Phaser.Game) {
  * @param {Phaser.Game} game Game object from Phaser.
  */
 function checkCollisionForAllPhysicsBodies(game: Phaser.Game) {
-     for (var index: number = 0; index < physics.physicsBodies.length; index++) {
-        var targetBody: PhysicsBody = physics.physicsBodies[index];
-
-        if (checkCollision(targetBody)) {
-            console.log("Collision between body id's:", physics.currentlyMovingBody._uniqueId, targetBody._uniqueId);
-
-            console.log("Current:", Math.round(physics.currentlyMovingBody.x / 32), ",", Math.round(physics.currentlyMovingBody.y / 32), physics.currentlyMovingBody._uniqueId);
-            console.log("Target :", Math.round(targetBody.x / 32), ",", Math.round(targetBody.y / 32), targetBody._uniqueId);
-
-            if (physics.currentlyMovingBody.tiledType === "PLAYER" && targetBody.tiledType === "ICE") {
-                targetBody.velocity.x = physics.currentlyMovingBody.velocity.x;
-                calculateNextForBody(targetBody);
+    physics.physicsBodies.forEach((current: PhysicsBody, currentIndex: number) => {
+        physics.physicsBodies.forEach((target: PhysicsBody, targetIndex: number) => {
+            if (targetIndex === currentIndex) {
+                // Skip the same indices
+                return;
             }
 
-            physics.stopCurrentAndSwap(targetBody);
-            console.log(physics.currentlyMovingBody.tiledType);
-            return;
+            if (resolve.collision(current, target)) {
+                console.log("Collision between body id's:", current._uniqueId, target._uniqueId);
+
+                console.log("Current:", Math.round(current.x / 32), ",", Math.round(current.y / 32), current._uniqueId);
+                console.log("Target :", Math.round(target.x / 32), ",", Math.round(target.y / 32), target._uniqueId);
+
+                if (current.tiledType === "PLAYER" && target.tiledType === "ICE") {
+                    target.velocity.x = current.velocity.x;
+                    calculateNextForBody(target);
+                }
+
+                physics.stopCurrentAndSwap(target);
+                console.log(current.tiledType);
+            }
+        });
+    });
+
+    for (var currentIndex: number = 0; currentIndex < physics.physicsBodies.length; currentIndex++) {
+        var current: PhysicsBody = physics.physicsBodies[currentIndex];
+
+        for (var index: number = 0; index < physics.physicsBodies.length; index++) {
+            if (currentIndex === index) {
+                // Do not check against self, skip it.
+                continue;
+            }
+
+            
         }
     }
 
@@ -389,8 +327,6 @@ function checkCollisionForAllPhysicsBodies(game: Phaser.Game) {
 }
 
 module physics {
-    // Generally we allow only one body to move at a time 
-    export var currentlyMovingBody: PhysicsBody;
     // Ice bodies are different, they can "combine" and move as one
     export var currentlyIceBodies: PhysicsBody[] = [];
 
@@ -458,8 +394,8 @@ module physics {
     export function isMoving(body?: PhysicsBody) {
         var b = body ? body : physics.currentlyMovingBody;
 
-        return  utilities.isDirectionRight(b) || utilities.isDirectionLeft(b) ||
-                utilities.isDirectionDown(b) || b.velocity.y <= -constant.VelocityTreshold;
+        return  constant.isDirectionRight(b.velocity.x) || constant.isDirectionLeft(b.velocity.x) ||
+                constant.isDirectionDown(b.velocity.y) || b.velocity.y <= -constant.VelocityTreshold;
     }
 }
 
