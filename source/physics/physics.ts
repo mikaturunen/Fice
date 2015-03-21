@@ -25,61 +25,57 @@ function canClimb(body: PhysicsBody, tile: Phaser.Tile) {
 /**
  * Moves the currently moving body in the wanted direction.
  * @param {Phaser.Game} game Game object from Phaser.
+ * @param {PhysicsBody} current Currently moving PhysicsBody
  */
-function move(game: Phaser.Game) {
-    if (!physics.currentlyMovingBody) {
+function move(game: Phaser.Game, current: PhysicsBody) {
+    if (physics.currentlyMovingBodies.length <= 0) {
         return;
     }
 
-    var tile = world.getTileBasedOnPositionAndDirection(physics.currentlyMovingBody);
+    var tile = world.getTileBasedOnPositionAndDirection(current);
     if (tile) {
 
-        if (canClimb(physics.currentlyMovingBody, tile)) {
+        if (canClimb(current, tile)) {
             console.log("CAN CLIMB AHOY! :D");
-            physics.currentlyMovingBody.x = tile.x * constant.TileSize.width;
-            physics.currentlyMovingBody.y = (tile.y - 1) * constant.TileSize.heigth;
+            current.x = tile.x * constant.TileSize.width;
+            current.y = (tile.y - 1) * constant.TileSize.heigth;
         }
         console.log("overlap, stop");
-        physics.stopCurrent();
+        current.velocity.x = current.velocity.y = 0;
     }
 
-    physics.currentlyMovingBody.x += physics.currentlyMovingBody.velocity.x;
-    physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+    current.x += current.velocity.x;
+    current.y += current.velocity.y;
 
     // Stops the movement if the moving body has reached it's ending position
-    if (!constant.isDirectionDown(physics.currentlyMovingBody.velocity.y) && 
-        physics.currentlyMovingBody.tiledType === "PLAYER" && 
-        utilities.onNextPosition(physics.currentlyMovingBody)) {
+    if (!constant.isDirectionDown(current.velocity.y) && 
+        current.tiledType === "PLAYER" && 
+        utilities.onNextPosition(current)) {
 
         // PLAYER reached end of position
         console.log("Next position reached - stop");
-        physics.stopCurrent();
+        current.velocity.x = current.velocity.y = 0;
         // TODO because of the below lines the movement is jerky! FIX!
-        physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
-        physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
-    } else if (!constant.isDirectionDown(physics.currentlyMovingBody.velocity.y) && 
-        utilities.onNextPosition(physics.currentlyMovingBody)) {
+        current.x = current.next.x;
+        current.y = current.next.y;
+    } else if (!constant.isDirectionDown(current.velocity.y) && 
+        utilities.onNextPosition(current)) {
 
         // Entity reached next position, check if falls and otherwise recalculate new next
-         // TODO because of the below lines the movement is jerky! FIX!
-        physics.currentlyMovingBody.x = physics.currentlyMovingBody.next.x;
-        physics.currentlyMovingBody.y = physics.currentlyMovingBody.next.y;
+        // TODO because of the below lines the movement is jerky! FIX!
+        current.x = current.next.x;
+        current.y = current.next.y;
         
-
-        if (canFallTile(physics.currentlyMovingBody) && canFallBody(physics.currentlyMovingBody)) {
+        if (canFallTile(current) && canFallBody(current)) {
             // Gravity can pull the current body down
             console.log("Current body started falling..");
-            physics.currentlyMovingBody.velocity.y = constant.Velocity * game.time.elapsed;
-            physics.currentlyMovingBody.velocity.x = 0;
-            physics.currentlyMovingBody.y += physics.currentlyMovingBody.velocity.y;
+            current.velocity.y = constant.Velocity * game.time.elapsed;
+            current.velocity.x = 0;
+            current.y += current.velocity.y;
         } else {
             console.log("Calculating new next for body..");
-            calculateNextForBody(physics.currentlyMovingBody);
+            calculateNextForBody(current);
         }
-    }
-
-    if (!physics.isMoving()) {
-        physics.currentlyMovingBody = undefined;
     }
 }
 
@@ -238,7 +234,8 @@ function canFall(target: PhysicsBody) {
  * Solomon's No Kagi 2's behavior as much as it can in this respect.
  * @param {Phaser.Game} game Game object from Phaser
  */
-function applyGravityOnMotionlessBodies(game: Phaser.Game) {
+function applyGravityOnMotionlessBodies(game: Phaser.Game, current: PhysicsBody) {
+
     // When no body is in motion, try finding a body we can put into motion through gravity
     if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
         var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
@@ -283,50 +280,32 @@ function applyGravityOnMotionlessBodies(game: Phaser.Game) {
  * Checks for collisions for all physics bodies.
  * @param {Phaser.Game} game Game object from Phaser.
  */
-function checkCollisionForAllPhysicsBodies(game: Phaser.Game) {
-    physics.physicsBodies.forEach((current: PhysicsBody, currentIndex: number) => {
-        physics.physicsBodies.forEach((target: PhysicsBody, targetIndex: number) => {
-            if (targetIndex === currentIndex) {
-                // Skip the same indices
-                return;
-            }
-
-            if (resolve.collision(current, target)) {
-                console.log("Collision between body id's:", current._uniqueId, target._uniqueId);
-
-                console.log("Current:", Math.round(current.x / 32), ",", Math.round(current.y / 32), current._uniqueId);
-                console.log("Target :", Math.round(target.x / 32), ",", Math.round(target.y / 32), target._uniqueId);
-
-                if (current.tiledType === "PLAYER" && target.tiledType === "ICE") {
-                    target.velocity.x = current.velocity.x;
-                    calculateNextForBody(target);
-                }
-
-                physics.stopCurrentAndSwap(target);
-                console.log(current.tiledType);
-            }
-        });
-    });
-
-    for (var currentIndex: number = 0; currentIndex < physics.physicsBodies.length; currentIndex++) {
-        var current: PhysicsBody = physics.physicsBodies[currentIndex];
-
-        for (var index: number = 0; index < physics.physicsBodies.length; index++) {
-            if (currentIndex === index) {
-                // Do not check against self, skip it.
-                continue;
-            }
-
-            
+function checkCollisionForAllPhysicsBodies(game: Phaser.Game, current: PhysicsBody, index: number) {
+    physics.physicsBodies.forEach((target: PhysicsBody, currentIndex: number) => {
+        if (index === currentIndex) {
+            // Skip the same indices
+            return;
         }
-    }
 
-    if (physics.currentlyMovingBody && physics.currentlyMovingBody.isDead) {
-        physics.currentlyMovingBody = undefined;
-    }
+        if (resolve.collision(current, target)) {
+            console.log("Collision between body id's:", current._uniqueId, target._uniqueId);
+
+            console.log("Current:", Math.round(current.x / 32), ",", Math.round(current.y / 32), current._uniqueId);
+            console.log("Target :", Math.round(target.x / 32), ",", Math.round(target.y / 32), target._uniqueId);
+
+            if (current.tiledType === "PLAYER" && target.tiledType === "ICE") {
+                target.velocity.x = current.velocity.x;
+                calculateNextForBody(target);
+            }
+
+            physics.stopCurrentAndSwap(target);
+            console.log(current.tiledType);
+        }
+    });
 }
 
 module physics {
+    export var currentlyMovingBodies: PhysicsBody[] = [];
     // Ice bodies are different, they can "combine" and move as one
     export var currentlyIceBodies: PhysicsBody[] = [];
 
@@ -341,16 +320,6 @@ module physics {
         console.log("Current bodies:", physicsBodies.length);
         physics.physicsBodies = physics.physicsBodies.filter(b => bodies.indexOf(b._uniqueId) === -1);
         console.log("Current bodies after removal:", physicsBodies.length);
-    }
-
-    export function stopCurrent() {
-        if (!physics.currentlyMovingBody) {
-            console.log("nothing to stop");
-            return;
-        }
-
-        physics.currentlyMovingBody.velocity.x = physics.currentlyMovingBody.velocity.y = 0;
-        console.log("stopped ", physics.currentlyMovingBody.tiledType, ", velocity: " + physics.currentlyMovingBody.velocity);
     }
 
     export function getBody(x: number, y: number) {
@@ -379,24 +348,27 @@ module physics {
         // Sort the bodies into an order where the first is the one with the highest Y, so we start applying physics
         // from bottom to top from the screens perspective and the "one object at a time"-login works and that's how
         // the items fall in the original so :o
-        physics.physicsBodies = utilities.sortIntoAscendingYOrder(physics.physicsBodies);
-
-        move(game);
-        applyGravityOnMotionlessBodies(game);
-        checkCollisionForAllPhysicsBodies(game);
+        utilities
+            .sortIntoAscendingYOrder(physics.physicsBodies)
+            .forEach((current: PhysicsBody, index: number) => {
+                move(game, current);
+                // applyGravityOnMotionlessBodies(game, current);
+                checkCollisionForAllPhysicsBodies(game, current, index);
+            });
     }
 
     /** 
      * Is PhysicsBody moving. 
-     * @param {PhysicsBody} [body= physics.currentlyMovingBody] The body to check for movement
+     * @param {PhysicsBody} b The body to check for movement
      * @returns {boolean} true when it has velocity over treshold.
      */
-    export function isMoving(body?: PhysicsBody) {
-        var b = body ? body : physics.currentlyMovingBody;
-
+    export function isMoving(b: PhysicsBody) {
         return  constant.isDirectionRight(b.velocity.x) || constant.isDirectionLeft(b.velocity.x) ||
                 constant.isDirectionDown(b.velocity.y) || b.velocity.y <= -constant.VelocityTreshold;
     }
+
+    export var areBodiesInMotion    = () => physicsBodies.filter(b => physics.isMoving(b)) > 0;
+    export var areIceBodiesInMotion = () => physicsBodies.filter(b => b.tiledType === "ICE" && physics.isMoving(b)) > 0;
 }
 
 export = physics;
