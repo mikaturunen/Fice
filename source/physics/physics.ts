@@ -3,6 +3,7 @@ import constant = require("../utilities/constants");
 import utilities = require("../utilities/utilities");
 import world = require("../world/tiles");
 import collisionBody = require("./collision-body");
+import resolver = require("./resolver");
 
 /**
  * Tests if the body facing the given Tile can climb on top of it.
@@ -180,42 +181,13 @@ function checkCollision(targetBody: PhysicsBody) {
         return false;
     }
 
-    var current: CollisionBody = collisionBody.fromPhysicsBody(physics.currentlyMovingBody);
-    var target: CollisionBody = collisionBody.fromPhysicsBody(targetBody);
-
     // Physics bodies
-    if (areBodiesOverlapping(current, target) && resolveCollision(physics.currentlyMovingBody, current, target)) {
+    if (resolver.resolveCollision(physics.currentlyMovingBody, targetBody)) {
         killBodies(physics.currentlyMovingBody, targetBody);
         return true;
     }
 
     return false;
-}
-
-function areBodiesOverlapping(current: CollisionBody, target: CollisionBody) {
-    if (current.coordinates.y >= target.coordinates.y + target.heigth) {
-        // current is UNDER the target box
-        return false; 
-    } 
-
-    if (current.coordinates.y + current.heigth <= target.coordinates.y) {
-        return false;
-        // Current is ABOVE the target box
-    }
-
-    if (current.coordinates.x >= target.coordinates.x + target.width) {
-        return false;
-        // Current is on the RIGHT side of the target box
-    }
-
-    if (current.coordinates.x + current.width <= target.coordinates.x) {
-        return false; 
-        // Currenty is on the LEFT side of the target box
-    }
-
-    console.log("overlapping ", current, target);
-    // We are overlapping :{
-    return true;
 }
 
 function killBodies(current: PhysicsBody, target: PhysicsBody) {
@@ -226,43 +198,6 @@ function killBodies(current: PhysicsBody, target: PhysicsBody) {
             console.log("FIRE FOUND", target.tiledType);
         }
     }
-}
-
-function resolveCollision(toResolve: PhysicsBody, toResolveCurrent: CollisionBody, target: CollisionBody) {
-    if (toResolveCurrent._uniqueId === target._uniqueId || toResolve._uniqueId === target._uniqueId) {
-        console.log("Unique ids match: ", toResolve, toResolveCurrent, target);
-        return false;
-    }
-
-    // NOTE this is stupidly simple but enough for this game
-    
-    // Pull the bodies apart based on velocity
-    if (utilities.isDirectionLeft(toResolve) &&
-        toResolveCurrent.tile.y === target.tile.y) {
-
-        console.log("LLL X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
-        // is moving from right to left, need to pull to right 
-        toResolve.x = target.coordinates.x + target.width;
-        return true;
-    } else if(utilities.isDirectionRight(toResolve) &&
-        toResolveCurrent.tile.y === target.tile.y) {
-
-        console.log("RRR X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
-        // is moving from left to right, need to pull to right
-        toResolve.x = target.coordinates.x - target.width;
-        return true;
-    } else if(utilities.isDirectionDown(toResolve) &&
-        toResolveCurrent.tile.x === target.tile.x &&
-        toResolve.y + toResolveCurrent.heigth >= target.coordinates.y) {
-        
-        console.log("DDD X,Y -- X,Y:", toResolveCurrent.tile.x,",", toResolveCurrent.tile.y,"--", target.tile.x,",",target.tile.y);
-        // is falling, need to pull up
-        toResolve.y = target.coordinates.y - target.heigth;
-        return true;
-    } 
-
-    // No resolving required
-    return false;
 }
 
 function getBodyBelow(body?: PhysicsBody) {
