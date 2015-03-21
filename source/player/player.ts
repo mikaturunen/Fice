@@ -15,10 +15,14 @@ var constantAnimationSpeed: number = 8;
  * Physics engine can also tinker with players animations.
  */
 function setAnimationFrames() {
-    if (physics.currentlyMovingBody && player.sprite.body._uniqueId !== physics.currentlyMovingBody._uniqueId) {
+    if (!physics.isMoving(player.sprite.body)) {
         // TODO only few animations we can set when we are not actively moving
         return;
     }
+
+
+   // TODO climbing
+
 
     // Player actively moving, inspect velocity and decide on animation based on that.
     if (constant.isDirectionLeft(player.sprite.body.x)) {
@@ -97,11 +101,6 @@ module player {
     }
 
     export function checkInputs(game: Phaser.Game) {
-        if (physics.currentlyMovingBody) {
-            setAnimationFrames();
-            return;
-        }
-
         // TODO instead of setting velocity here, give direction and then in physics module we give it the delta
         // velocity each loop it deservers, with love. 
 
@@ -123,13 +122,11 @@ module player {
             isFacingLeft = false;
         }
 
-        // TODO climbing
         // TODO magic wand / breathe ice
 
         if (sprite.body.velocity.x >=  constant.VelocityTreshold || 
             sprite.body.velocity.x <= -constant.VelocityTreshold) {
 
-            physics.currentlyMovingBody = player.sprite.body;
             sprite.body.hasJustStarted = true;
         } 
 

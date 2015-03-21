@@ -95,9 +95,11 @@ function calculateNextForBody(body: PhysicsBody) {
     }
 }
 
-function findFirstTileUnderBody(body?: PhysicsBody) {
-    var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
-
+/**
+ * Finds the first tile under the current PhysicsBody
+ * @param {PhysicsBody} current 
+ */
+function findFirstTileUnderBody(current: PhysicsBody) {
     var x: number = Math.floor((current.x + constant.TileSize.width * 0.5) / constant.TileSize.width);
     var y: number = Math.floor(current.y / constant.TileSize.heigth);
 
@@ -117,11 +119,13 @@ function recursiveFindFirstTileUnderBody(x: number, y: number, recursion: number
     return recursiveFindFirstTileUnderBody(x, y + 1, recursion + 1);
 }
 
-function getBodyBelow(body?: PhysicsBody) {
+/**
+ * Tries to find a body below the current body
+ * @param {PhysicsBody} current Current body
+ * @returns {PhysicsBody} Returns a body when found
+ */
+function getBodyBelow(current: PhysicsBody) {
     var isBodyUnder: PhysicsBody;
-
-    var current: PhysicsBody = body ? body : physics.currentlyMovingBody;
-
     physics.physicsBodies.forEach((target: PhysicsBody) => {
         if (isBodyUnder || current === target) {
             return;
@@ -237,7 +241,7 @@ function canFall(target: PhysicsBody) {
 function applyGravityOnMotionlessBodies(game: Phaser.Game, current: PhysicsBody) {
 
     // When no body is in motion, try finding a body we can put into motion through gravity
-    if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
+   /* if (!physics.currentlyMovingBody && physics.currentlyIceBodies.length === 0) {
         var iceBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType === "ICE");
         var otherBodies: PhysicsBody[] = physics.physicsBodies.filter(b => b.tiledType !== "ICE");
 
@@ -273,7 +277,7 @@ function applyGravityOnMotionlessBodies(game: Phaser.Game, current: PhysicsBody)
                 }
             });
         } 
-    }
+    }*/
 }
 
 /**
@@ -298,7 +302,7 @@ function checkCollisionForAllPhysicsBodies(game: Phaser.Game, current: PhysicsBo
                 calculateNextForBody(target);
             }
 
-            physics.stopCurrentAndSwap(target);
+            current.velocity.x = current.velocity.y = 0;
             console.log(current.tiledType);
         }
     });
@@ -334,13 +338,6 @@ module physics {
         return body;
     }
 
-    export function stopCurrentAndSwap(newCurrentlyMovingBody: PhysicsBody) {
-        // Stop current body first
-        physics.stopCurrent();
-        // Set the new body to be the new currently moving body <3
-        physics.currentlyMovingBody = newCurrentlyMovingBody;
-    }
-
     export function update(game: Phaser.Game) {
         // TODO apply new velocity each loop with delta and THEN add it on body; currently add delta once and keep adding it to body (delta changes each time)
 
@@ -367,8 +364,8 @@ module physics {
                 constant.isDirectionDown(b.velocity.y) || b.velocity.y <= -constant.VelocityTreshold;
     }
 
-    export var areBodiesInMotion    = () => physicsBodies.filter(b => physics.isMoving(b)) > 0;
-    export var areIceBodiesInMotion = () => physicsBodies.filter(b => b.tiledType === "ICE" && physics.isMoving(b)) > 0;
+    export var areBodiesInMotion    = () => physicsBodies.filter(b => physics.isMoving(b)).length > 0;
+    export var areIceBodiesInMotion = () => physicsBodies.filter(b => b.tiledType === "ICE" && physics.isMoving(b)).length > 0;
 }
 
 export = physics;
