@@ -21,7 +21,7 @@ var game = {
         phaserStorage.game = new Phaser.Game(
             450,
             700,
-            Phaser.AUTO,
+            Phaser.CANVAS,
             "FIce",
             {
                 preload: preload(),
