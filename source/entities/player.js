@@ -2,7 +2,7 @@
 
 var phaserStorage = require("../utilities/phaser-storage");
 
-var playerVelocity = 55;
+var playerVelocity = 200;
 
 // Creating cursos keys from Phaser
 var keys = {
@@ -16,14 +16,18 @@ var update = () => {
 };
 
 var checkInputs = () => {
+    player.sprite.body.velocity.x = 0;
+
     if (keys.cursors.left.isDown) {
-        player.sprite.body.velocity = -playerVelocity;
+        player.sprite.body.velocity.x = -playerVelocity;
     } else if (keys.cursors.right.isDown) {
-        player.sprite.body.velocity = playerVelocity;
+        player.sprite.body.velocity.x = playerVelocity;
     }
 
-    if (keys.jump && player.sprite.body.velociy <= 0) {
-        player.sprite.body.velocity.y = 300;
+    if (keys.jump.isDown && player.sprite.body.velocity.y >= 0) {
+        player.sprite.body.velocity.y = -500;
+    } else if (!keys.jump.isDown && player.sprite.body.velocity.y < -1) {
+        player.sprite.body.velocity.y = 0;
     }
 };
 

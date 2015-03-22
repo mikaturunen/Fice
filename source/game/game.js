@@ -20,7 +20,7 @@ var game = {
     start: () => {
         phaserStorage.game = new Phaser.Game(
             450,
-            700,
+            600,
             Phaser.CANVAS,
             "FIce",
             {

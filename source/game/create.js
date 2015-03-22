@@ -24,8 +24,9 @@ var create = () => {
 
     // Giving all the loaded sprite objects arcade physics
     game.physics.arcade.enable(player.sprite);
-    // I want to be able to tinker with physics on the fly so I'm tying them into a separate variable.
-    game.physics.arcade.gravity.y = phaserStorage.gravity;
+    player.sprite.body.gravity.y = 1000;
+    player.sprite.body.maxVelocity.y = 400;
+    
     // Set common physics base for all objects that need it
     player.sprite.body.collideWorldBounds = true;
 
