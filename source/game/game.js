@@ -2,6 +2,12 @@
 
 var phaserStorage = require("../utilities/phaser-storage");
 
+// Wrapping the callback into a anon function so that the phaserStorage.game object is properly in place  - magic!
+var preload = () => () => require("./preload")(phaserStorage.game);
+var create  = () => () => require("./create")(phaserStorage.game);
+var update  = () => () => require("./update")(phaserStorage.game);
+var render  = () => () => require("./render")(phaserStorage.game);
+
 /**
  * The game module itself that manages the whole game as one.
  * @module game
@@ -18,12 +24,14 @@ var game = {
             Phaser.AUTO,
             "FIce",
             {
-                preload: require("./preload")(),
-                create: require("./create")(),
-                update: require("./update")(),
-                render: require("./render")()
+                preload: preload(),
+                create: create(),
+                update: update(),
+                render: render()
             }
         );
+
+        phaserStorage.game = gameObject;
     }
 };
 

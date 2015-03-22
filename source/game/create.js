@@ -8,9 +8,7 @@ var player = require("../entities/player");
  * Create function for Phaser.
  * @return {Function} Function that can be called to execute the actual create functionality for Phaser.
  */
-var create = () => {
-    console.log("Create in place.");
-
+var create = (game) => {
     // Loading player sprite
     player.sprite = game.add.sprite(
             game,                 // current game object
@@ -34,4 +32,5 @@ var create = () => {
     });
 };
 
+console.log("Create in place.");
 module.exports = create;

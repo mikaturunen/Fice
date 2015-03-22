@@ -2,8 +2,9 @@
 
 var phaserStorage = require("../utilities/phaser-storage");
 
-var render = () => {
-    console.log("Render in place.");
+var render = (game) => {
+    
 };
 
+console.log("Render in place.");
 module.exports = render;
