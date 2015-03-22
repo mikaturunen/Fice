@@ -1,14 +1,15 @@
 "use strict";
 
 var phaserStorage = require("../utilities/phaser-storage");
-var game = phaserStorage.game;
 var player = require("../entities/player");
 
 /**
- * Create function for Phaser.
+ * Create function for Phaser.a
  * @return {Function} Function that can be called to execute the actual create functionality for Phaser.
  */
-var create = (game) => {
+var create = () => {
+    var game = phaserStorage.game;
+    
     // Loading player sprite
     player.sprite = game.add.sprite(
             game,                 // current game object

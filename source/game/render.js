@@ -2,7 +2,7 @@
 
 var phaserStorage = require("../utilities/phaser-storage");
 
-var render = (game) => {
+var render = () => {
     
 };
 
