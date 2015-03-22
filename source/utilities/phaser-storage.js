@@ -9,7 +9,9 @@
  */
 var phaserStorage = {
     /** {Phaser.Game} Phasers game object stored in common place were all that need to use it can easily access it */
-    game: undefined
+    game: undefined,
+
+    gravity: 200,
 };
 
 module.exports = phaserStorage;
