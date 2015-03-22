@@ -3,6 +3,8 @@
 var phaserStorage = require("../utilities/phaser-storage");
 
 var playerVelocity = 200;
+var animationSpeed = 10;
+var maximumJumps = 3;
 
 // Creating cursos keys from Phaser
 var keys = {
@@ -36,16 +38,18 @@ var create = () => {
  */
 var createAnimations = () => {
     // Left direction 
-    player.sprite.animations.add("leftWalking", [0, 1, 2, 3], 10, true);
-    player.sprite.animations.add("leftJumping", [], 10, true);
-    player.sprite.animations.add("leftIdle", [], 10, true);
-    player.sprite.animations.add("leftFalling", [], 10, true);
+    player.sprite.animations.add("leftWalking", [ 9, 10, 11 ], animationSpeed, true);
+    player.sprite.animations.add("leftJumping", [ 15 ], animationSpeed, true);
+    player.sprite.animations.add("leftIdle", [ 14 ], animationSpeed, true);
+    player.sprite.animations.add("leftIdleFood", [ 8 ], animationSpeed, true);
+    player.sprite.animations.add("leftFalling", [ 13 ], animationSpeed, true);
 
     // Right direction
-    player.sprite.animations.add("rightWalking", [5, 6, 7, 8], 10, true);
-    player.sprite.animations.add("rightJumping", [], 10, true);
-    player.sprite.animations.add("rightIdle", [], 10, true);
-    player.sprite.animations.add("rightFalling", [], 10, true);
+    player.sprite.animations.add("rightWalking", [ 0, 1, 2 ], animationSpeed, true);
+    player.sprite.animations.add("rightJumping", [ 4 ], animationSpeed, true);
+    player.sprite.animations.add("rightIdle", [ 5 ], animationSpeed, true);
+    player.sprite.animations.add("rightIdleFood", [ 3 ], animationSpeed, true);
+    player.sprite.animations.add("rightFalling", [ 6 ], animationSpeed, true);
 };
 
 var update = () => {
