@@ -18,6 +18,7 @@ var browserify = require("browserify");
 var tsify = require("tsify");
 var source = require("vinyl-source-stream");
 var buffer = require("vinyl-buffer");
+var babelify = require("babelify");
 
 var typeDefinitions = [];
 var projectDefinitions = [ ];
@@ -45,14 +46,15 @@ gulp.task(taskTslintClient, function() {
 gulp.task(taskBrowserifyClient, function() {
     var bundler = browserify({
         entries: [
-            path.join(__dirname, "source/definitions/client.d.ts"),
-            path.join(__dirname, "source/index.ts")
+            //path.join(__dirname, "source/definitions/client.d.ts"),
+            path.join(__dirname, "source/index.js")
         ],
         debug: false
     });
 
     var bundle = function() {
         return bundler
+            .transform(babelify)
         //    .plugin("tsify", { noImplicitAny: true, removeComments: true, declarationFiles: true })
             .bundle()
             .pipe(source( path.normalize("index.min.js") ))
@@ -67,6 +69,6 @@ gulp.task(taskBrowserifyClient, function() {
 // defining the tasks gulp runs -- in default we do basically all the tasks in one
 gulp.task("default", function() {
     sequence(
-            [ taskTslintClient, taskBrowserifyClient ]
+            [ taskBrowserifyClient ]
         );
 });
