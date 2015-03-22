@@ -19,6 +19,9 @@ var tsify = require("tsify");
 var source = require("vinyl-source-stream");
 var buffer = require("vinyl-buffer");
 var babelify = require("babelify");
+var watch = require("gulp-watch");
+var plumber = require("gulp-plumber");
+var batch = require("gulp-batch");
 
 var typeDefinitions = [];
 var projectDefinitions = [ ];
@@ -64,6 +67,12 @@ gulp.task(taskBrowserifyClient, function() {
     };
 
     return bundle();
+});
+
+gulp.task("watch", function() {
+    watch("**/*.js", function() {
+        gulp.start("default");
+    });
 });
 
 // defining the tasks gulp runs -- in default we do basically all the tasks in one
