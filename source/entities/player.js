@@ -11,7 +11,7 @@ var keys = {
     shoot: phaserStorage.game.input.keyboard.addKey(Phaser.Keyboard.S)
 };
 
-var player = () => {
+var create = () => {
     var game = phaserStorage.game;
 
     // Loading player sprite
@@ -87,28 +87,47 @@ var setAnimations() => {
 var trySettingAnimationJumping = () => {
     if (player.sprite.body.velocity.y < 0) {
         // Jumping
+        if (player.facing === "left") {
+            player.sprite.animations.play("leftJumping");
+        } else {
+            player.sprite.animations.play("rightJumping");
+        }
     }
 };
 
 var trySettingAnimationFalling = () => {
     if (player.sprite.body.velocity.y > 0) {
         // Falling
+        if (player.facing === "left") {
+            player.sprite.animations.play("leftFalling");
+        } else {
+            player.sprite.animations.play("rightFalling");
+        }
     }
 };
 
-var trySettingAnimationWalkingLeft = () => {
-    if (player.sprite.body.velocity.y === 0 && player.sprite.body.velocity.x < 0) {
+var trySettingAnimationWalking = () => {
+    if (player.sprite.body.velocity.y === 0 && player.sprite.body.velocity.x !== 0) {
         // Walking left
-        
+        if (player.facing === "left") {
+            player.sprite.animations.play("leftWalking");
+        } else {
+            player.sprite.animations.play("rightWalking");
+        }
     }
-};
-
-var trySettingAnimationWalkingRight = () => {
-
 };
 
 var trySettingAnimationStanding = () => {
-
+    if (player.sprite.body.velocity.y === 0 && player.sprite.body.velocity.x === 0) {
+        // Start idle timer
+        
+        // Walking left
+        if (player.facing === "left") {
+            player.sprite.animations.play("leftIdle");
+        } else {
+            player.sprite.animations.play("rightIdle");
+        }
+    }
 }:
 
 /**
@@ -123,16 +142,25 @@ var player = {
 
     /**
      * What direction the player is facing currently.
+     * @type {string}
      */
     facing: "right",
 
     /**
+     * How long the player has been standing idle - will be mainly used for idle animation sequences
+     * @type {number}
+     */
+    idle: 0,
+
+    /**
      * Creates the player entity.
+     * @type {Function}
      */
     create: create,
 
     /**
      * Update handler for Player
+     * @type {Function}
      */
     update: update
 };
