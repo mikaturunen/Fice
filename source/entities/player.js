@@ -77,11 +77,11 @@ var checkInputs = () => {
 /**
  * Sets the player into a N animation series.
  */
-var setAnimations() => {
+var setAnimations = () => {
     trySettingAnimationJumping();
     trySettingAnimationFalling();
-    trySettingAnimationWalkingLeft();
-    trySettingAnimationWalkingRight();
+    trySettingAnimationWalking();
+    trySettingAnimationStanding();
 };
 
 var trySettingAnimationJumping = () => {
@@ -120,7 +120,8 @@ var trySettingAnimationWalking = () => {
 var trySettingAnimationStanding = () => {
     if (player.sprite.body.velocity.y === 0 && player.sprite.body.velocity.x === 0) {
         // Start idle timer
-        
+        player.idleTime = phaserStorage.game.time.now;
+
         // Walking left
         if (player.facing === "left") {
             player.sprite.animations.play("leftIdle");
@@ -128,7 +129,7 @@ var trySettingAnimationStanding = () => {
             player.sprite.animations.play("rightIdle");
         }
     }
-}:
+};
 
 /**
  * Player entity
@@ -147,10 +148,10 @@ var player = {
     facing: "right",
 
     /**
-     * How long the player has been standing idle - will be mainly used for idle animation sequences
+     * How long the player has been standing idle - will be mainly used for idle animation sequences. Unit: milliseconds.
      * @type {number}
      */
-    idle: 0,
+    idleTime: 0,
 
     /**
      * Creates the player entity.
